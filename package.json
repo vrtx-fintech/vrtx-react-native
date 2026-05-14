@@ -12,6 +12,7 @@
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
+    "publish": "npm version patch --no-git-tag-version && npm publish",
     "open:ios": "xed example/ios",
     "open:android": "cd example/android && ./gradlew :app:installDebug --no-build-cache"
   },
