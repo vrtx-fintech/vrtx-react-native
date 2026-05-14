@@ -1,0 +1,43 @@
+{
+  "name": "vrtx-react-native",
+  "version": "0.1.0",
+  "description": "vrtx react-native",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "lint": "expo-module lint",
+    "test": "expo-module test",
+    "prepare": "expo-module prepare",
+    "prepublishOnly": "expo-module prepublishOnly",
+    "expo-module": "expo-module",
+    "open:ios": "xed example/ios",
+    "open:android": "cd example/android && ./gradlew :app:installDebug --no-build-cache"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "vrtx-react-native",
+    "VrtxAndroid"
+  ],
+  "repository": "https://github.com/vrtx-fintech/vrtx-react-native",
+  "bugs": {
+    "url": "https://github.com/vrtx-fintech/vrtx-react-native/issues"
+  },
+  "author": "vrtx developers",
+  "license": "MIT",
+  "homepage": "https://github.com/vrtx-fintech/vrtx-react-native#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/react": "~19.1.1",
+    "expo-module-scripts": "^55.0.2",
+    "expo": "^55.0.24",
+    "react-native": "0.82.1"
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

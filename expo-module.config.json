@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["VrtxAndroidModule"]
+  },
+  "android": {
+    "modules": ["sa.vrtx.reactnative.VrtxAndroidModule"]
+  }
+}

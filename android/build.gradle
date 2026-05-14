@@ -1,0 +1,42 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+repositories {
+    mavenCentral()
+}
+
+group = 'sa.vrtx.reactnative'
+version = '0.1.0'
+
+dependencies {
+    implementation 'sa.vrtx.sa:vrtx-android:0.0.10'
+    
+    // Jetpack Compose UI (needed for FontFamily parameter)
+    implementation 'androidx.compose.ui:ui:1.6.8'
+}
+
+android {
+  namespace "sa.vrtx.reactnative"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+    minSdk 29
+    compileSdk 36
+    targetSdk 36
+  }
+  
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+  
+  kotlinOptions {
+    jvmTarget = '17'
+  }
+  
+  lintOptions {
+    abortOnError false
+  }
+}
