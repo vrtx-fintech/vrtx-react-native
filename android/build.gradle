@@ -38,10 +38,6 @@ android {
     freeCompilerArgs += "-Xskip-metadata-version-check"
   }
   
-  packagingOptions {
-    pickFirst 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
-  }
-  
   lintOptions {
     abortOnError false
   }
