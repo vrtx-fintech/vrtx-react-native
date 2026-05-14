@@ -1,6 +1,6 @@
 {
-  "name": "vrtx-react-native",
-  "version": "0.1.0",
+  "name": "@vrtx-fintech/vrtx-react-native",
+  "version": "0.1.4",
   "description": "vrtx react-native",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -21,23 +21,31 @@
     "vrtx-react-native",
     "VrtxAndroid"
   ],
-  "repository": "https://github.com/vrtx-fintech/vrtx-react-native",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vrtx-fintech/vrtx-react-native.git"
+  },
   "bugs": {
     "url": "https://github.com/vrtx-fintech/vrtx-react-native/issues"
   },
   "author": "vrtx developers",
   "license": "MIT",
   "homepage": "https://github.com/vrtx-fintech/vrtx-react-native#readme",
-  "dependencies": {},
+  "dependencies": {
+    "@vrtx-fintech/vrtx-react-native": "^0.1.0"
+  },
   "devDependencies": {
     "@types/react": "~19.1.1",
-    "expo-module-scripts": "^55.0.2",
     "expo": "^55.0.24",
+    "expo-module-scripts": "^55.0.2",
     "react-native": "0.82.1"
   },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
     "react-native": "*"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   }
 }

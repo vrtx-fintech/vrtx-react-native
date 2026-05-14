@@ -1,6 +1,9 @@
 import { NativeModule, requireNativeModule } from 'expo';
 
-import { VrtxAndroidModuleEvents } from './VrtxAndroid.types';
+type VrtxAndroidModuleEvents = {
+  onSuccess: () => void;
+  onError: (params: { code: string; message: string }) => void;
+};
 
 declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
   readonly VERSION: string;
