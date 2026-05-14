@@ -1,5 +1,12 @@
-import VrtxAndroid from 'vrtx-react-native';
-import { Button, StyleSheet, Text, View, Alert } from 'react-native';
+import React, { useEffect } from 'react';
+import { Alert, Button, StyleSheet, Text, View } from 'react-native';
+import {
+  Language,
+  ThemeMode,
+  onError,
+  onSuccess,
+  setup
+} from 'vrtx-react-native';
 
 // Read from Expo environment variables (EXPO_PUBLIC_*)
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
@@ -7,7 +14,25 @@ const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
 const VRTX_ENVIRONMENT = process.env.EXPO_PUBLIC_VRTX_ENVIRONMENT || 'SANDBOX';
 
 export default function App() {
-  const handleSetup = async () => {
+  useEffect(() => {
+    // Listen for SDK events
+    const successSub = onSuccess(() => {
+      console.log('Vrtx screen is open!');
+    });
+
+    const errorSub = onError((err) => {
+      console.error('Vrtx error:', err.code, err.message);
+      Alert.alert('Vrtx Error', err.message);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      successSub.remove();
+      errorSub.remove();
+    };
+  }, []);
+
+  const handlePress = async () => {
     if (!VRTX_CLIENT_ID || !VRTX_CLIENT_SECRET) {
       Alert.alert(
         'Configuration Required',
@@ -17,15 +42,17 @@ export default function App() {
     }
 
     try {
-      await VrtxAndroid.setup(
-        VRTX_CLIENT_ID,
-        VRTX_CLIENT_SECRET,
-        VRTX_ENVIRONMENT as 'SANDBOX' | 'STAGING',
-        'ENGLISH' as any,
-        'LIGHT' as any
-      );
-      Alert.alert('Success', 'Vrtx SDK launched!');
+      await setup({
+        clientId: VRTX_CLIENT_ID,
+        clientSecret: VRTX_CLIENT_SECRET,
+        environment: VRTX_ENVIRONMENT,
+        language: 'ENGLISH' as Language,
+        themeMode: 'LIGHT' as ThemeMode,
+      });
+      // Promise resolves the moment the SDK screen opens
+      console.log('Vrtx SDK launched successfully');
     } catch (error: any) {
+      console.error('Vrtx launch failed:', error);
       Alert.alert('Error', error.message);
     }
   };
@@ -43,7 +70,7 @@ export default function App() {
           </Text>
           <Button
             title="Launch Vrtx SDK"
-            onPress={handleSetup}
+            onPress={handlePress}
           />
         </View>
 

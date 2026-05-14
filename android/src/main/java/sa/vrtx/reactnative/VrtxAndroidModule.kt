@@ -4,15 +4,20 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
+import expo.modules.kotlin.app.ContextHolder
 import sa.vrtx.public.Vrtx
 import sa.vrtx.public.configuration.Environment
 import sa.vrtx.public.configuration.Language
 import sa.vrtx.public.configuration.ThemeMode
 import androidx.compose.ui.text.font.FontFamily
-import android.os.Handler
-import android.os.Looper
+import androidx.activity.ComponentActivity
 
 class VrtxAndroidModule : Module() {
+  
+  private fun getActivity(): ComponentActivity? {
+    return ContextHolder.getActivityProvider()?.currentActivity as? ComponentActivity
+  }
+  
   override fun definition() = ModuleDefinition {
     Name("VrtxAndroid")
 
@@ -20,7 +25,7 @@ class VrtxAndroidModule : Module() {
       "vrtx-android"
     }
 
-    Events("onError")
+    Events("onSuccess", "onError")
 
     AsyncFunction("setup") { 
       clientId: String, 
@@ -47,25 +52,37 @@ class VrtxAndroidModule : Module() {
       
       val fontFamily = FontFamily.Default
       
-      // Must run on main thread to launch Activity
-      Handler(Looper.getMainLooper()).post {
-        Vrtx.setup(
-          clientId = clientId,
-          clientSecret = clientSecret,
-          environment = env,
-          language = lang,
-          themeMode = theme,
-          fontFamily = fontFamily,
-          onSuccess = {
-            promise.resolve(null)
-          },
-          onError = { error ->
-            val errorMessage = error.message ?: "Unknown error"
-            promise.reject(CodedException("VRX_ERROR", errorMessage, null))
-            // Emit error event with message
-            runCatching { sendEvent("onError", mapOf("message" to errorMessage)) }
-          }
-        )
+      // Get activity and run on UI thread
+      val activity = getActivity()
+      if (activity == null) {
+        promise.reject(CodedException("VRX_ERROR", "Activity not available", null))
+        return@AsyncFunction
+      }
+      
+      activity.runOnUiThread {
+        try {
+          Vrtx.setup(
+            clientId = clientId,
+            clientSecret = clientSecret,
+            environment = env,
+            language = lang,
+            themeMode = theme,
+            fontFamily = fontFamily,
+            onSuccess = {
+              promise.resolve(null)
+              sendEvent("onSuccess", null)
+            },
+            onError = { error ->
+              val errorMessage = error.message ?: "Unknown error"
+              promise.reject(CodedException("VRX_ERROR", errorMessage, null))
+              sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
+            }
+          )
+        } catch (e: Exception) {
+          val errorMessage = e.message ?: "Failed to initialize Vrtx SDK"
+          promise.reject(CodedException("VRX_ERROR", errorMessage, e))
+          sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
+        }
       }
     }
   }
