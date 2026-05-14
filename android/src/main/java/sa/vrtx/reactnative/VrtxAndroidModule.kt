@@ -4,7 +4,6 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
-import expo.modules.kotlin.app.ContextHolder
 import sa.vrtx.public.Vrtx
 import sa.vrtx.public.configuration.Environment
 import sa.vrtx.public.configuration.Language
@@ -15,7 +14,7 @@ import androidx.activity.ComponentActivity
 class VrtxAndroidModule : Module() {
   
   private fun getActivity(): ComponentActivity? {
-    return ContextHolder.getActivityProvider()?.currentActivity as? ComponentActivity
+    return appContext.activityProvider?.currentActivity as? ComponentActivity
   }
   
   override fun definition() = ModuleDefinition {
@@ -52,7 +51,6 @@ class VrtxAndroidModule : Module() {
       
       val fontFamily = FontFamily.Default
       
-      // Get activity and run on UI thread
       val activity = getActivity()
       if (activity == null) {
         promise.reject(CodedException("VRX_ERROR", "Activity not available", null))
