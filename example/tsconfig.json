@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "vrtx-react-native": ["../src/index"],
+      "vrtx-react-native/*": ["../src/*"]
+    }
+  }
+}
