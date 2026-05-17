@@ -35,8 +35,7 @@
         {
           "android": {
             "minSdkVersion": 29,
-            "kotlinVersion": "2.3.0",
-            "extraGradleConf": "allprojects { configurations.all { resolutionStrategy { force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24'; force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24' } } }"
+            "kotlinVersion": "2.1.20"
           }
         }
       ],
