@@ -14,15 +14,14 @@ public class VrtxAndroidModule: Module {
     Events("onSuccess", "onError")
 
     // Environment enum values
-    EnumValue("PRODUCTION", "PRODUCTION")
-    EnumValue("SANDBOX", "SANDBOX")
-    EnumValue("STAGING", "STAGING")
+    EnumValue("Sandbox", "SANDBOX")
+    EnumValue("Staging", "STAGING")
 
     // Language enum values
-    EnumValue("ENGLISH", "ENGLISH")
-    EnumValue("ARABIC", "ARABIC")
+    EnumValue("English", "ENGLISH")
+    EnumValue("Arabic", "ARABIC")
 
-    // ThemeMode enum values
+    // Mode enum values
     EnumValue("LIGHT", "LIGHT")
     EnumValue("DARK", "DARK")
 
@@ -37,9 +36,10 @@ public class VrtxAndroidModule: Module {
       clientSecret: String,
       environment: String,
       language: String,
-      mode: String?
+      mode: String?,
+      fontFamily: String?
     ) in
-      NSLog("[VrtxAndroid] setup called on iOS (stub): clientId=\(clientId.prefix(8))..., environment=\(environment), language=\(language), mode=\(mode ?? "LIGHT")")
+      NSLog("[VrtxAndroid] setup called on iOS (stub): clientId=\(clientId.prefix(8))..., environment=\(environment), language=\(language), mode=\(mode ?? "LIGHT"), fontFamily=\(fontFamily ?? "system")")
       self.sendEvent("onSuccess", nil)
     }
   }
