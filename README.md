@@ -1,6 +1,6 @@
 # vrtx-react-native
 
-React Native bindings for the Vrtx Android SDK.
+The official Recat native SDK for Vrtx — onboarding, wallet, and card flows for your app.
 
 ## Install
 
@@ -38,8 +38,6 @@ The React Native API mirrors the Android SDK public enums:
 | `mode` | `Mode` | `Mode.LIGHT`, `Mode.DARK` |
 
 `fontFamily` may be passed with the name of a font already bundled in the host app.
-
-For compatibility with earlier React Native releases, `themeMode` and `ThemeMode` remain available as deprecated aliases for `mode` and `Mode`.
 
 ## Support
 
