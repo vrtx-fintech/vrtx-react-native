@@ -1,18 +1,31 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directories:
-      - /
-      - /example
+    directory: /
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
+      include: "scope"
     schedule:
       interval: weekly
     groups:
-      same-dependency:
+      minor-and-patch:
         patterns:
           - "*"
-        group-by: dependency-name
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: npm
+    directory: /example
+    commit-message:
+      prefix: "demo"
+      include: "scope"
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
         update-types:
           - minor
           - patch
@@ -20,7 +33,23 @@ updates:
   - package-ecosystem: gradle
     directory: /android
     commit-message:
-      prefix: "chore(deps)"
+      prefix: "chore"
+      include: "scope"
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    commit-message:
+      prefix: "ci"
+      include: "scope"
     schedule:
       interval: weekly
     groups:
