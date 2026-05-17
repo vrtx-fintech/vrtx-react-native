@@ -17,13 +17,15 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
    * @param environment The environment (PRODUCTION, SANDBOX, or STAGING)
    * @param language The language for the UI (ENGLISH or ARABIC)
    * @param themeMode Optional theme mode (LIGHT or DARK) - defaults to LIGHT
+   * @param fontFamily Optional React Native font family name - defaults to the system font
    */
   setup(
     clientId: string,
     clientSecret: string,
     environment: 'PRODUCTION' | 'SANDBOX' | 'STAGING',
     language: 'ENGLISH' | 'ARABIC',
-    themeMode?: 'LIGHT' | 'DARK'
+    themeMode?: 'LIGHT' | 'DARK',
+    fontFamily?: string
   ): Promise<void>;
 }
 
