@@ -15,8 +15,18 @@ import {
   Environment,
   Language,
   Mode,
+  onError,
+  onSuccess,
   setup,
 } from '@vrtx-fintech/vrtx-react-native';
+
+const successSubscription = onSuccess(() => {
+  console.log('Vrtx screen opened');
+});
+
+const errorSubscription = onError((error) => {
+  console.error('Vrtx error:', error.code, error.message);
+});
 
 await setup({
   clientId: 'your-client-id',
@@ -25,6 +35,10 @@ await setup({
   language: Language.English,
   mode: Mode.LIGHT,
 });
+
+// Remove listeners when they are no longer needed.
+successSubscription.remove();
+errorSubscription.remove();
 ```
 
 ## Contract
@@ -38,6 +52,15 @@ The React Native API mirrors the Android SDK public enums:
 | `mode` | `Mode` | `Mode.LIGHT`, `Mode.DARK` |
 
 `fontFamily` may be passed with the name of a font already bundled in the host app.
+
+## Events
+
+| Helper | Callback payload |
+| --- | --- |
+| `onSuccess` | `() => void` |
+| `onError` | `(error: { code: string; message: string }) => void` |
+
+Both helpers return a subscription with a `remove()` method.
 
 ## Support
 
