@@ -50,6 +50,9 @@ jobs:
         with:
           cache-disabled: true
 
+      - name: Clear Gradle dependency cache
+        run: rm -rf ~/.gradle/caches
+
       - name: Make gradlew executable
         run: chmod +x gradlew
         working-directory: example/android
@@ -59,7 +62,7 @@ jobs:
         working-directory: example/android
 
       - name: Build Android debug app
-        run: ./gradlew app:assembleDebug
+        run: ./gradlew app:assembleDebug --no-build-cache
         working-directory: example/android
         env:
           NODE_ENV: production
