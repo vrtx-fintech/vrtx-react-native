@@ -1,6 +1,6 @@
 {
   "name": "@vrtx-fintech/vrtx-react-native",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "description": "vrtx react-native",
   "main": "build/index.js",
   "types": "build/index.d.ts",
