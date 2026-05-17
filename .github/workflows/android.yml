@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   build-example-app:
@@ -23,10 +24,14 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: example/package-lock.json
+          registry-url: https://npm.pkg.github.com
+          scope: '@vrtx-fintech'
 
       - name: Install example dependencies
         run: npm ci
         working-directory: example
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Java
         uses: actions/setup-java@v5
