@@ -33,6 +33,10 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Generate Android project
+        run: npx expo prebuild --platform android --no-install
+        working-directory: example
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
