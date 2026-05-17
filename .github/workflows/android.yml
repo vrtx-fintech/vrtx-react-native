@@ -25,7 +25,7 @@ jobs:
           cache: npm
           cache-dependency-path: example/package-lock.json
           registry-url: https://npm.pkg.github.com
-          scope: '@vrtx-fintech'
+          scope: "@vrtx-fintech"
 
       - name: Install example dependencies
         run: npm ci
@@ -45,6 +45,14 @@ jobs:
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+        working-directory: example/android
+
+      - name: Set Android SDK path
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+        working-directory: example/android
 
       - name: Build Android debug app
         run: ./gradlew app:assembleDebug
