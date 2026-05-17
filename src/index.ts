@@ -1,20 +1,24 @@
 // Native module
 import VrtxAndroidModule from './VrtxAndroidModule';
 
-// Re-export enums for compatibility
-export { Environment, Language, ThemeMode } from './VrtxAndroidModule';
+// Re-export enums for the public setup contract.
+export { Environment, Language, Mode, ThemeMode } from './VrtxAndroidModule';
 export { default as VrtxAndroid } from './VrtxAndroidModule';
 
 // Types
-export type VrtxEnvironment = 'PRODUCTION' | 'SANDBOX' | 'STAGING';
+export type VrtxEnvironment = 'SANDBOX' | 'STAGING';
 export type VrtxLanguage = 'ENGLISH' | 'ARABIC';
-export type VrtxThemeMode = 'LIGHT' | 'DARK';
+export type VrtxMode = 'LIGHT' | 'DARK';
+/** @deprecated Use VrtxMode instead. */
+export type VrtxThemeMode = VrtxMode;
 
 export interface VrtxConfig {
   clientId: string;
   clientSecret: string;
   environment: VrtxEnvironment;
   language?: VrtxLanguage;
+  mode?: VrtxMode;
+  /** @deprecated Use mode instead. */
   themeMode?: VrtxThemeMode;
   fontFamily?: string;
 }
@@ -26,7 +30,7 @@ export function setup(
   clientSecret: string,
   environment: VrtxEnvironment,
   language?: VrtxLanguage,
-  themeMode?: VrtxThemeMode,
+  mode?: VrtxMode,
   fontFamily?: string
 ): Promise<void>;
 export async function setup(
@@ -34,7 +38,7 @@ export async function setup(
   clientSecret?: string,
   environment?: VrtxEnvironment,
   language: VrtxLanguage = 'ENGLISH',
-  themeMode?: VrtxThemeMode,
+  mode?: VrtxMode,
   fontFamily?: string
 ): Promise<void> {
   const config =
@@ -44,7 +48,7 @@ export async function setup(
           clientSecret: clientSecret!,
           environment: environment!,
           language,
-          themeMode,
+          mode,
           fontFamily,
         }
       : configOrClientId;
@@ -54,7 +58,7 @@ export async function setup(
     config.clientSecret,
     config.environment,
     config.language ?? 'ENGLISH',
-    config.themeMode,
+    config.mode ?? config.themeMode,
     config.fontFamily
   );
 }

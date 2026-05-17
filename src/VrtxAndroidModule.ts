@@ -14,17 +14,17 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
    * 
    * @param clientId Your Vrtx client ID from the dashboard
    * @param clientSecret Your Vrtx client secret from the dashboard
-   * @param environment The environment (PRODUCTION, SANDBOX, or STAGING)
+   * @param environment The environment (SANDBOX or STAGING)
    * @param language The language for the UI (ENGLISH or ARABIC)
-   * @param themeMode Optional theme mode (LIGHT or DARK) - defaults to LIGHT
+   * @param mode Optional display mode (LIGHT or DARK) - defaults to LIGHT
    * @param fontFamily Optional React Native font family name - defaults to the system font
    */
   setup(
     clientId: string,
     clientSecret: string,
-    environment: 'PRODUCTION' | 'SANDBOX' | 'STAGING',
+    environment: 'SANDBOX' | 'STAGING',
     language: 'ENGLISH' | 'ARABIC',
-    themeMode?: 'LIGHT' | 'DARK',
+    mode?: 'LIGHT' | 'DARK',
     fontFamily?: string
   ): Promise<void>;
 }
@@ -33,16 +33,21 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
 export default requireNativeModule<VrtxAndroidModule>('VrtxAndroid');
 
 export const enum Environment {
-  PRODUCTION = 'PRODUCTION',
-  SANDBOX = 'SANDBOX',
-  STAGING = 'STAGING',
+  Sandbox = 'SANDBOX',
+  Staging = 'STAGING',
 }
 
 export const enum Language {
-  ENGLISH = 'ENGLISH',
-  ARABIC = 'ARABIC',
+  English = 'ENGLISH',
+  Arabic = 'ARABIC',
 }
 
+export const enum Mode {
+  LIGHT = 'LIGHT',
+  DARK = 'DARK',
+}
+
+/** @deprecated Use Mode instead. */
 export const enum ThemeMode {
   LIGHT = 'LIGHT',
   DARK = 'DARK',

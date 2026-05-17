@@ -1,35 +1,50 @@
 # vrtx-react-native
 
-vrtx react-native
+React Native bindings for the Vrtx Android SDK.
 
-# API documentation
+## Install
 
-- [Documentation for the latest stable release](https://docs.expo.dev/versions/latest/sdk/vrtx-react-native/)
-- [Documentation for the main branch](https://docs.expo.dev/versions/unversioned/sdk/vrtx-react-native/)
-
-# Installation in managed Expo projects
-
-For [managed](https://docs.expo.dev/archive/managed-vs-bare/) Expo projects, please follow the installation instructions in the [API documentation for the latest stable release](#api-documentation). If you follow the link and there is no documentation available then this library is not yet usable within managed projects &mdash; it is likely to be included in an upcoming Expo SDK release.
-
-# Installation in bare React Native projects
-
-For bare React Native projects, you must ensure that you have [installed and configured the `expo` package](https://docs.expo.dev/bare/installing-expo-modules/) before continuing.
-
-### Add the package to your npm dependencies
-
-```
-npm install vrtx-react-native
+```bash
+npm install @vrtx-fintech/vrtx-react-native
 ```
 
-### Configure for Android
+## Quick start
 
+```ts
+import {
+  Environment,
+  Language,
+  Mode,
+  setup,
+} from '@vrtx-fintech/vrtx-react-native';
 
+await setup({
+  clientId: 'your-client-id',
+  clientSecret: 'your-client-secret',
+  environment: Environment.Sandbox,
+  language: Language.English,
+  mode: Mode.LIGHT,
+});
+```
 
+## Contract
 
-### Configure for iOS
+The React Native API mirrors the Android SDK public enums:
 
-Run `npx pod-install` after installing the npm package.
+| Parameter | Enum | Values |
+| --- | --- | --- |
+| `environment` | `Environment` | `Environment.Sandbox`, `Environment.Staging` |
+| `language` | `Language` | `Language.English`, `Language.Arabic` |
+| `mode` | `Mode` | `Mode.LIGHT`, `Mode.DARK` |
 
-# Contributing
+`fontFamily` may be passed with the name of a font already bundled in the host app.
 
-Contributions are very welcome! Please refer to guidelines described in the [contributing guide]( https://github.com/expo/expo#contributing).
+For compatibility with earlier React Native releases, `themeMode` and `ThemeMode` remain available as deprecated aliases for `mode` and `Mode`.
+
+## Support
+
+For credentials, license keys, and integration help, contact your Vrtx account manager or [support@vrtx.sa](mailto:support@vrtx.sa).
+
+## License
+
+Licensed under the Apache License, Version 2.0. Copyright (C) 2026 vrtx fintech.
