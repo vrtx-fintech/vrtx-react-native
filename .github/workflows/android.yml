@@ -39,6 +39,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Fix Kotlin stdlib jdk7/jdk8 resolution
+        run: |
+          cat >> build.gradle << 'EOF'
+
+          allprojects {
+            configurations.all {
+              resolutionStrategy {
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.24'
+                force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.24'
+              }
+            }
+          }
+          EOF
+        working-directory: example/android
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
