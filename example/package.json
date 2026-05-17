@@ -9,10 +9,12 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@vrtx-fintech/vrtx-react-native": "^0.1.10",
-    "expo": "~54.0.33",
-    "react": "19.1.0",
-    "react-native": "0.81.5"
+    "@vrtx-fintech/vrtx-react-native": "^0.1.27",
+    "expo": "^55.0.24",
+    "expo-build-properties": "~55.0.14",
+    "expo-font": "~55.0.7",
+    "react": "19.2.0",
+    "react-native": "0.83.6"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",

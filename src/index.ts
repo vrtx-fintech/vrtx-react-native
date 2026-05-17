@@ -16,22 +16,46 @@ export interface VrtxConfig {
   environment: VrtxEnvironment;
   language?: VrtxLanguage;
   themeMode?: VrtxThemeMode;
+  fontFamily?: string;
 }
 
 // Promise-based setup function - resolves when SDK screen opens
-export async function setup(
+export function setup(config: VrtxConfig): Promise<void>;
+export function setup(
   clientId: string,
   clientSecret: string,
   environment: VrtxEnvironment,
+  language?: VrtxLanguage,
+  themeMode?: VrtxThemeMode,
+  fontFamily?: string
+): Promise<void>;
+export async function setup(
+  configOrClientId: VrtxConfig | string,
+  clientSecret?: string,
+  environment?: VrtxEnvironment,
   language: VrtxLanguage = 'ENGLISH',
-  themeMode?: VrtxThemeMode
+  themeMode?: VrtxThemeMode,
+  fontFamily?: string
 ): Promise<void> {
+  const config =
+    typeof configOrClientId === 'string'
+      ? {
+          clientId: configOrClientId,
+          clientSecret: clientSecret!,
+          environment: environment!,
+          language,
+          themeMode,
+          fontFamily,
+        }
+      : configOrClientId;
+
   return await VrtxAndroidModule.setup(
-    clientId,
-    clientSecret,
-    environment,
-    language,
-    themeMode
+    config.clientId,
+    config.clientSecret,
+    config.environment,
+    config.language ?? 'ENGLISH',
+    config.themeMode,
+    config.fontFamily
   );
 }
 
@@ -50,4 +74,3 @@ export function onSuccess(callback: () => void) {
 export function onError(callback: (error: { code: string; message: string }) => void) {
   return addListener('onError', callback);
 }
-

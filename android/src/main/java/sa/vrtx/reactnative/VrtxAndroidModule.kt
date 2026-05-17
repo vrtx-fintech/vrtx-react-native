@@ -1,20 +1,37 @@
 package sa.vrtx.reactnative
 
+import android.graphics.Typeface
+import androidx.activity.ComponentActivity
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import expo.modules.kotlin.Promise
 import expo.modules.kotlin.exception.CodedException
+import com.facebook.react.common.assets.ReactFontManager
 import sa.vrtx.public.Vrtx
 import sa.vrtx.public.configuration.Environment
 import sa.vrtx.public.configuration.Language
-import sa.vrtx.public.configuration.ThemeMode
+import sa.vrtx.public.configuration.Mode
 import androidx.compose.ui.text.font.FontFamily
-import androidx.activity.ComponentActivity
 
 class VrtxAndroidModule : Module() {
   
   private fun getActivity(): ComponentActivity? {
     return appContext.activityProvider?.currentActivity as? ComponentActivity
+  }
+
+  private fun getFontFamily(fontFamilyName: String?): FontFamily {
+    if (fontFamilyName.isNullOrBlank()) {
+      return FontFamily.Default
+    }
+
+    val assetManager = appContext.reactContext?.assets ?: return FontFamily.Default
+    val typeface = ReactFontManager.getInstance().getTypeface(
+      fontFamilyName,
+      Typeface.NORMAL,
+      assetManager
+    )
+
+    return FontFamily(typeface)
   }
   
   override fun definition() = ModuleDefinition {
@@ -32,6 +49,7 @@ class VrtxAndroidModule : Module() {
       environment: String, 
       language: String, 
       themeMode: String?,
+      fontFamilyName: String?,
       promise: Promise ->
       
       val env = when(environment.uppercase()) {
@@ -45,11 +63,11 @@ class VrtxAndroidModule : Module() {
       }
       
       val theme = when(themeMode?.uppercase()) {
-        "DARK" -> ThemeMode.DARK
-        else -> ThemeMode.LIGHT
+        "DARK" -> Mode.DARK
+        else -> Mode.LIGHT
       }
-      
-      val fontFamily = FontFamily.Default
+
+      val fontFamily = getFontFamily(fontFamilyName)
       
       val activity = getActivity()
       if (activity == null) {
@@ -64,11 +82,11 @@ class VrtxAndroidModule : Module() {
             clientSecret = clientSecret,
             environment = env,
             language = lang,
-            themeMode = theme,
+            mode = theme,
             fontFamily = fontFamily,
             onSuccess = {
               promise.resolve(null)
-              sendEvent("onSuccess", null)
+              sendEvent("onSuccess")
             },
             onError = { error ->
               val errorMessage = error.message ?: "Unknown error"
