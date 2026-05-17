@@ -11,8 +11,9 @@ import {
   View,
 } from 'react-native';
 import {
+  Environment,
   Language,
-  ThemeMode,
+  Mode,
   onError,
   onSuccess,
   setup,
@@ -20,7 +21,10 @@ import {
 
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
 const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
-const VRTX_ENVIRONMENT = process.env.EXPO_PUBLIC_VRTX_ENVIRONMENT || 'SANDBOX';
+const VRTX_ENVIRONMENT =
+  process.env.EXPO_PUBLIC_VRTX_ENVIRONMENT === Environment.Staging
+    ? Environment.Staging
+    : Environment.Sandbox;
 const DROPDOWN_MENU_WIDTH = 196;
 const DROPDOWN_VISIBLE_ROWS = 3;
 const DROPDOWN_ROW_HEIGHT = 40;
@@ -44,11 +48,11 @@ type EnglishFont = (typeof englishFonts)[number]['value'];
 type ArabicFont = (typeof arabicFonts)[number]['value'];
 
 export default function App() {
-  const [language, setLanguage] = useState<'ENGLISH' | 'ARABIC'>('ENGLISH');
+  const [language, setLanguage] = useState<Language>(Language.English);
   const [englishFont, setEnglishFont] = useState<EnglishFont>('Geom');
   const [arabicFont, setArabicFont] = useState<ArabicFont>('IBMPlexSansArabic');
   const [openDropdown, setOpenDropdown] = useState<'english' | 'arabic' | null>(null);
-  const isArabic = language === 'ARABIC';
+  const isArabic = language === Language.Arabic;
   const activeFontFamily = isArabic ? arabicFont : englishFont;
 
   useEffect(() => {
@@ -82,8 +86,8 @@ export default function App() {
         clientSecret: VRTX_CLIENT_SECRET,
         environment: VRTX_ENVIRONMENT,
         language: language as Language,
-        themeMode: 'LIGHT' as ThemeMode,
-        fontFamily: language === 'ENGLISH' ? englishFont : arabicFont,
+        mode: Mode.LIGHT,
+        fontFamily: language === Language.English ? englishFont : arabicFont,
       });
       console.log('Vrtx SDK launched successfully');
     } catch (error: any) {
@@ -121,9 +125,11 @@ export default function App() {
           <SegmentedControl
             leftLabel="EN"
             rightLabel="AR"
-            rightActive={language === 'ARABIC'}
+            rightActive={language === Language.Arabic}
             onPress={() =>
-              setLanguage(language === 'ENGLISH' ? 'ARABIC' : 'ENGLISH')
+              setLanguage(
+                language === Language.English ? Language.Arabic : Language.English
+              )
             }
           />
         </ControlRow>
