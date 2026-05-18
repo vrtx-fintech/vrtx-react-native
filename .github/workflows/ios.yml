@@ -18,26 +18,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          # VRTX.xcframework lives in Git LFS; without this the framework
-          # is a 133-byte pointer and `pod install` / xcodebuild would fail.
-          lfs: true
+        # NOTE: we deliberately do NOT use `lfs: true`. On macos-latest
+        # runners actions/checkout@v6 was observed to fetch LFS objects
+        # to cache but never materialize them in the working tree (and
+        # subsequent `git lfs pull` / `git lfs checkout` no-op'd). The
+        # framework is also published as a release asset upstream, so
+        # downloading it directly is more robust than fighting LFS in
+        # CI. The published npm tarball is unaffected — it ships the
+        # real binary from the maintainer's machine where LFS works
+        # normally.
 
-      # actions/checkout@v6 with `lfs: true` fetches LFS objects to the
-      # local cache but on macos-latest leaves the working tree pointing
-      # at pointer files. An explicit checkout (and fail-loud verification)
-      # is the only way to guarantee CocoaPods reads real plists.
-      - name: Materialize LFS files
+      - name: Materialize VRTX.xcframework from upstream release
         run: |
-          git lfs install --local
-          git lfs fetch --all
-          git lfs checkout
-          if head -c 50 ios/Frameworks/VRTX.xcframework/Info.plist | grep -q 'lfs.github.com'; then
-            echo "::error::VRTX.xcframework/Info.plist is still an LFS pointer after checkout"
-            cat ios/Frameworks/VRTX.xcframework/Info.plist
-            exit 1
-          fi
-          file ios/Frameworks/VRTX.xcframework/ios-arm64/VRTX.framework/VRTX
+          rm -rf VRTX.xcframework
+          gh release download 0.0.12 \
+            -R vrtx-fintech/vrtx-ios \
+            --pattern 'VRTX.xcframework.zip' \
+            --clobber
+          unzip -q VRTX.xcframework.zip
+          rm VRTX.xcframework.zip
+          file VRTX.xcframework/ios-arm64/VRTX.framework/VRTX
+        working-directory: ios/Frameworks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Node
         uses: actions/setup-node@v6
