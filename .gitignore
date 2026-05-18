@@ -60,3 +60,20 @@ yarn-error.log
 .env
 .env.local
 .env*.local
+
+# Vendored binary frameworks — fetched at build time, not committed.
+ios/Frameworks/
+
+# Output of `npx expo prebuild` run at the repo root. The library's own
+# iOS sources (podspec, Swift module) live in /ios and stay tracked; the
+# patterns below only ignore the generated app-shaped artefacts.
+/ios/Pods/
+/ios/Podfile
+/ios/Podfile.lock
+/ios/Podfile.properties.json
+/ios/.xcode.env
+/ios/.xcode.env.local
+/ios/.gitignore
+/ios/*.xcodeproj/
+/ios/*.xcworkspace/
+/app.json
