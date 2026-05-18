@@ -48,7 +48,7 @@ class VrtxAndroidModule : Module() {
       clientSecret: String, 
       environment: String, 
       language: String, 
-      themeMode: String?,
+      mode: String?,
       fontFamilyName: String?,
       promise: Promise ->
       
@@ -62,7 +62,7 @@ class VrtxAndroidModule : Module() {
         else -> Language.English
       }
       
-      val theme = when(themeMode?.uppercase()) {
+      val selectedMode = when(mode?.uppercase()) {
         "DARK" -> Mode.DARK
         else -> Mode.LIGHT
       }
@@ -82,7 +82,7 @@ class VrtxAndroidModule : Module() {
             clientSecret = clientSecret,
             environment = env,
             language = lang,
-            mode = theme,
+            mode = selectedMode,
             fontFamily = fontFamily,
             onSuccess = {
               promise.resolve(null)

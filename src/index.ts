@@ -2,15 +2,13 @@
 import VrtxAndroidModule from './VrtxAndroidModule';
 
 // Re-export enums for the public setup contract.
-export { Environment, Language, Mode, ThemeMode } from './VrtxAndroidModule';
+export { Environment, Language, Mode } from './VrtxAndroidModule';
 export { default as VrtxAndroid } from './VrtxAndroidModule';
 
 // Types
 export type VrtxEnvironment = 'SANDBOX' | 'STAGING';
 export type VrtxLanguage = 'ENGLISH' | 'ARABIC';
 export type VrtxMode = 'LIGHT' | 'DARK';
-/** @deprecated Use VrtxMode instead. */
-export type VrtxThemeMode = VrtxMode;
 
 export interface VrtxConfig {
   clientId: string;
@@ -18,8 +16,6 @@ export interface VrtxConfig {
   environment: VrtxEnvironment;
   language?: VrtxLanguage;
   mode?: VrtxMode;
-  /** @deprecated Use mode instead. */
-  themeMode?: VrtxThemeMode;
   fontFamily?: string;
 }
 
@@ -58,7 +54,7 @@ export async function setup(
     config.clientSecret,
     config.environment,
     config.language ?? 'ENGLISH',
-    config.mode ?? config.themeMode,
+    config.mode,
     config.fontFamily,
   );
 }
