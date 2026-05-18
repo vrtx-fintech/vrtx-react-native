@@ -67,6 +67,16 @@ jobs:
         run: pod install
         working-directory: example/ios
 
+      # ExpoModulesCore (SDK 55) uses Swift 6 closure attribute syntax
+      # (e.g. `@MainActor` on closure types) that Xcode 16.4 — the default
+      # on macos-latest at time of writing — does not understand. Pin to
+      # the latest stable Xcode (26.x family), which matches the maintainer
+      # toolchain that the SDK is actually tested against.
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: Show toolchain
         run: |
           xcodebuild -version
@@ -82,7 +92,6 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_VERSION=5.0 \
             SWIFT_STRICT_CONCURRENCY=minimal \
             build
         working-directory: example/ios
