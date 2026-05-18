@@ -36,12 +36,54 @@
           "android": {
             "minSdkVersion": 29,
             "kotlinVersion": "2.1.20"
+          },
+          "ios": {
+            "deploymentTarget": "15.6"
           }
         }
       ],
       [
         "expo-font",
         {
+          "ios": {
+            "fonts": [
+              "./assets/font/geom_light.ttf",
+              "./assets/font/geom_regular.ttf",
+              "./assets/font/geom_medium.ttf",
+              "./assets/font/geom_semibold.ttf",
+              "./assets/font/geom_bold.ttf",
+              "./assets/font/inter_regular.ttf",
+              "./assets/font/inter_medium.ttf",
+              "./assets/font/inter_semibold.ttf",
+              "./assets/font/inter_bold.ttf",
+              "./assets/font/noto_sans_light.ttf",
+              "./assets/font/noto_sans_regular.ttf",
+              "./assets/font/noto_sans_medium.ttf",
+              "./assets/font/noto_sans_semibold.ttf",
+              "./assets/font/noto_sans_bold.ttf",
+              "./assets/font/jura_light.ttf",
+              "./assets/font/jura_regular.ttf",
+              "./assets/font/jura_medium.ttf",
+              "./assets/font/jura_semibold.ttf",
+              "./assets/font/jura_bold.ttf",
+              "./assets/font/jockey_one_regular.ttf",
+              "./assets/font/ibm_plex_sans_arabic_light.ttf",
+              "./assets/font/ibm_plex_sans_arabic_regular.ttf",
+              "./assets/font/ibm_plex_sans_arabic_medium.ttf",
+              "./assets/font/ibm_plex_sans_arabic_semibold.ttf",
+              "./assets/font/ibm_plex_sans_arabic_bold.ttf",
+              "./assets/font/noto_kufi_arabic_light.ttf",
+              "./assets/font/noto_kufi_arabic_regular.ttf",
+              "./assets/font/noto_kufi_arabic_medium.ttf",
+              "./assets/font/noto_kufi_arabic_semibold.ttf",
+              "./assets/font/noto_kufi_arabic_bold.ttf",
+              "./assets/font/noto_naskh_arabic_regular.ttf",
+              "./assets/font/noto_naskh_arabic_medium.ttf",
+              "./assets/font/noto_naskh_arabic_semibold.ttf",
+              "./assets/font/noto_naskh_arabic_bold.ttf",
+              "./assets/font/arslan_wessam_b_regular.ttf"
+            ]
+          },
           "android": {
             "fonts": [
               {

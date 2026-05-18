@@ -3,6 +3,7 @@ import {
   Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   SafeAreaView,
   StatusBar,
@@ -22,19 +23,33 @@ const DROPDOWN_MENU_WIDTH = 196;
 const DROPDOWN_VISIBLE_ROWS = 3;
 const DROPDOWN_ROW_HEIGHT = 40;
 
+// Font lookup keys differ per platform: Android resolves a JS string
+// against the resource name registered in the expo-font plugin
+// (sanitised, no spaces); iOS resolves against the font file's own
+// internal family name (extracted from the TTF's `name` table). We
+// keep the picker labels human-readable and let Platform.select
+// dispatch the platform-correct identifier.
+const pickFontValue = (ios: string, android: string) => (Platform.OS === 'ios' ? ios : android);
+
 const englishFonts = [
-  { label: 'Geom', value: 'Geom' },
-  { label: 'Inter', value: 'Inter' },
-  { label: 'Noto Sans', value: 'NotoSans' },
-  { label: 'Jura', value: 'Jura' },
-  { label: 'Jockey One', value: 'JockeyOne' },
+  { label: 'Geom', value: pickFontValue('Geom', 'Geom') },
+  { label: 'Inter', value: pickFontValue('Inter 18pt', 'Inter') },
+  { label: 'Noto Sans', value: pickFontValue('Noto Sans', 'NotoSans') },
+  { label: 'Jura', value: pickFontValue('Jura', 'Jura') },
+  { label: 'Jockey One', value: pickFontValue('Jockey One', 'JockeyOne') },
 ] as const;
 
 const arabicFonts = [
-  { label: 'IBM Plex Sans Arabic', value: 'IBMPlexSansArabic' },
-  { label: 'Noto Kufi Arabic', value: 'NotoKufiArabic' },
-  { label: 'Noto Naskh Arabic', value: 'NotoNaskhArabic' },
-  { label: 'Arslan Wessam B', value: 'ArslanWessamB' },
+  {
+    label: 'IBM Plex Sans Arabic',
+    value: pickFontValue('IBM Plex Sans Arabic', 'IBMPlexSansArabic'),
+  },
+  { label: 'Noto Kufi Arabic', value: pickFontValue('Noto Kufi Arabic', 'NotoKufiArabic') },
+  { label: 'Noto Naskh Arabic', value: pickFontValue('Noto Naskh Arabic', 'NotoNaskhArabic') },
+  {
+    label: 'Arslan Wessam B',
+    value: pickFontValue('(A) Arslan Wessam B', 'ArslanWessamB'),
+  },
 ] as const;
 
 type EnglishFont = (typeof englishFonts)[number]['value'];
@@ -42,8 +57,8 @@ type ArabicFont = (typeof arabicFonts)[number]['value'];
 
 export default function App() {
   const [language, setLanguage] = useState<Language>(Language.English);
-  const [englishFont, setEnglishFont] = useState<EnglishFont>('Geom');
-  const [arabicFont, setArabicFont] = useState<ArabicFont>('IBMPlexSansArabic');
+  const [englishFont, setEnglishFont] = useState<EnglishFont>(englishFonts[0].value);
+  const [arabicFont, setArabicFont] = useState<ArabicFont>(arabicFonts[0].value);
   const [openDropdown, setOpenDropdown] = useState<'english' | 'arabic' | null>(null);
   const isArabic = language === Language.Arabic;
   const activeFontFamily = isArabic ? arabicFont : englishFont;

@@ -1,35 +1,19 @@
 import ExpoModulesCore
+import VRTX
 
 public class VrtxAndroidModule: Module {
   public func definition() -> ModuleDefinition {
     Name("VrtxAndroid")
 
-    Constant("VERSION") {
-      return "ios-stub"
-    }
     Constant("LIBRARY_NAME") {
-      return "vrtx-android-ios-stub"
+      return "vrtx-ios"
     }
 
     Events("onSuccess", "onError")
 
-    // Environment enum values
-    EnumValue("Sandbox", "SANDBOX")
-    EnumValue("Staging", "STAGING")
-
-    // Language enum values
-    EnumValue("English", "ENGLISH")
-    EnumValue("Arabic", "ARABIC")
-
-    // Mode enum values
-    EnumValue("LIGHT", "LIGHT")
-    EnumValue("DARK", "DARK")
-
     /**
-     * Initialize and launch the Vrtx SDK UI flow.
-     * 
-     * Note: vrtx-android is an Android-only SDK. On iOS, this function is a no-op
-     * that immediately calls onSuccess. To support iOS, integrate vrtx-ios SDK separately.
+     * Initialize and launch the Vrtx SDK UI flow on iOS via the vrtx-ios
+     * SDK (VRTX.xcframework). Mirrors the Android Vrtx.setup contract.
      */
     AsyncFunction("setup") { (
       clientId: String,
@@ -37,10 +21,37 @@ public class VrtxAndroidModule: Module {
       environment: String,
       language: String,
       mode: String?,
-      fontFamily: String?
+      fontFamily: String?,
+      promise: Promise
     ) in
-      NSLog("[VrtxAndroid] setup called on iOS (stub): clientId=\(clientId.prefix(8))..., environment=\(environment), language=\(language), mode=\(mode ?? "LIGHT"), fontFamily=\(fontFamily ?? "system")")
-      self.sendEvent("onSuccess", nil)
+      let env: VrtxEnvironment = (environment.uppercased() == "STAGING") ? .staging : .sandbox
+      let lang: VrtxLanguage = (language.uppercased() == "ARABIC") ? .arabic : .english
+      let theme: VrtxThemeMode = (mode?.uppercased() == "DARK") ? .dark : .light
+      let font = fontFamily ?? ""
+
+      DispatchQueue.main.async { [weak self] in
+        guard let self else { return }
+        Vrtx.setup(
+          environment: env,
+          clientID: clientId,
+          clientSecret: clientSecret,
+          mode: theme,
+          language: lang,
+          fontFamily: font,
+          onSuccess: {
+            promise.resolve(nil)
+            self.sendEvent("onSuccess")
+          },
+          onError: { error in
+            let message = error.message
+            promise.reject("VRX_ERROR", message)
+            self.sendEvent("onError", [
+              "code": "VRX_ERROR",
+              "message": message
+            ])
+          }
+        )
+      }
     }
   }
 }
