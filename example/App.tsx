@@ -10,14 +10,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import {
-  Environment,
-  Language,
-  Mode,
-  onError,
-  onSuccess,
-  setup,
-} from 'vrtx-react-native';
+import { Environment, Language, Mode, onError, onSuccess, setup } from 'vrtx-react-native';
 
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
 const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
@@ -75,7 +68,7 @@ export default function App() {
     if (!VRTX_CLIENT_ID || !VRTX_CLIENT_SECRET) {
       Alert.alert(
         'Configuration Required',
-        'Please set EXPO_PUBLIC_VRTX_CLIENT_ID and EXPO_PUBLIC_VRTX_CLIENT_SECRET in .env file'
+        'Please set EXPO_PUBLIC_VRTX_CLIENT_ID and EXPO_PUBLIC_VRTX_CLIENT_SECRET in .env file',
       );
       return;
     }
@@ -127,9 +120,7 @@ export default function App() {
             rightLabel="AR"
             rightActive={language === Language.Arabic}
             onPress={() =>
-              setLanguage(
-                language === Language.English ? Language.Arabic : Language.English
-              )
+              setLanguage(language === Language.English ? Language.Arabic : Language.English)
             }
           />
         </ControlRow>
@@ -137,9 +128,7 @@ export default function App() {
         <ControlRow isRtl={isArabic} label={isArabic ? 'خط الإنجليزية' : 'English Font'}>
           <Dropdown
             isOpen={openDropdown === 'english'}
-            onToggle={() =>
-              setOpenDropdown(openDropdown === 'english' ? null : 'english')
-            }
+            onToggle={() => setOpenDropdown(openDropdown === 'english' ? null : 'english')}
             onSelect={(value) => {
               setEnglishFont(value as EnglishFont);
               setOpenDropdown(null);
@@ -152,9 +141,7 @@ export default function App() {
         <ControlRow isRtl={isArabic} label={isArabic ? 'خط العربية' : 'Arabic Font'} last>
           <Dropdown
             isOpen={openDropdown === 'arabic'}
-            onToggle={() =>
-              setOpenDropdown(openDropdown === 'arabic' ? null : 'arabic')
-            }
+            onToggle={() => setOpenDropdown(openDropdown === 'arabic' ? null : 'arabic')}
             onSelect={(value) => {
               setArabicFont(value as ArabicFont);
               setOpenDropdown(null);
@@ -168,10 +155,7 @@ export default function App() {
       <Pressable
         accessibilityRole="button"
         onPress={handlePress}
-        style={({ pressed }) => [
-          styles.primaryButton,
-          pressed && styles.primaryButtonPressed,
-        ]}
+        style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
       >
         <Text style={[styles.primaryButtonText, { fontFamily: activeFontFamily }]}>
           {isArabic ? 'ابدأ الآن' : 'Get started'}
@@ -190,13 +174,7 @@ type ControlRowProps = {
 
 function ControlRow({ children, isRtl, label, last = false }: ControlRowProps) {
   return (
-    <View
-      style={[
-        styles.controlRow,
-        isRtl && styles.controlRowRtl,
-        last && styles.controlRowLast,
-      ]}
-    >
+    <View style={[styles.controlRow, isRtl && styles.controlRowRtl, last && styles.controlRowLast]}>
       <Text style={[styles.controlLabel, isRtl && styles.textRtl]}>{label}</Text>
       {children}
     </View>
@@ -210,12 +188,7 @@ type SegmentedControlProps = {
   rightLabel: string;
 };
 
-function SegmentedControl({
-  leftLabel,
-  onPress,
-  rightActive,
-  rightLabel,
-}: SegmentedControlProps) {
+function SegmentedControl({ leftLabel, onPress, rightActive, rightLabel }: SegmentedControlProps) {
   return (
     <View style={styles.segmentGroup}>
       <Text style={[styles.segmentLabel, !rightActive && styles.segmentLabelActive]}>
@@ -248,9 +221,7 @@ function Dropdown({ isOpen, onSelect, onToggle, options, value }: DropdownProps)
   const selected = options.find((option) => option.value === value);
   const isScrollable = options.length > 3;
   const triggerRef = useRef<View>(null);
-  const [menuPosition, setMenuPosition] = useState<{ left: number; top: number } | null>(
-    null
-  );
+  const [menuPosition, setMenuPosition] = useState<{ left: number; top: number } | null>(null);
 
   useEffect(() => {
     if (!isOpen) {

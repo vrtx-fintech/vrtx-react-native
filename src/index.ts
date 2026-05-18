@@ -31,7 +31,7 @@ export function setup(
   environment: VrtxEnvironment,
   language?: VrtxLanguage,
   mode?: VrtxMode,
-  fontFamily?: string
+  fontFamily?: string,
 ): Promise<void>;
 export async function setup(
   configOrClientId: VrtxConfig | string,
@@ -39,7 +39,7 @@ export async function setup(
   environment?: VrtxEnvironment,
   language: VrtxLanguage = 'ENGLISH',
   mode?: VrtxMode,
-  fontFamily?: string
+  fontFamily?: string,
 ): Promise<void> {
   const config =
     typeof configOrClientId === 'string'
@@ -59,14 +59,20 @@ export async function setup(
     config.environment,
     config.language ?? 'ENGLISH',
     config.mode ?? config.themeMode,
-    config.fontFamily
+    config.fontFamily,
   );
 }
 
 // Type-safe addListener overloads
 export function addListener(eventName: 'onSuccess', callback: () => void): { remove: () => void };
-export function addListener(eventName: 'onError', callback: (error: { code: string; message: string }) => void): { remove: () => void };
-export function addListener(eventName: string, callback: (...args: any[]) => void): { remove: () => void } {
+export function addListener(
+  eventName: 'onError',
+  callback: (error: { code: string; message: string }) => void,
+): { remove: () => void };
+export function addListener(
+  eventName: string,
+  callback: (...args: any[]) => void,
+): { remove: () => void } {
   return VrtxAndroidModule.addListener(eventName as any, callback);
 }
 
