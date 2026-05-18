@@ -23,6 +23,13 @@ jobs:
           # is a 133-byte pointer and `pod install` / xcodebuild would fail.
           lfs: true
 
+      # actions/checkout's `lfs: true` clones pointers but doesn't always
+      # materialize file contents (observed silently no-oping on macos
+      # runners). An explicit pull guarantees the binary slices are real
+      # files before CocoaPods tries to read them as plists.
+      - name: Materialize LFS files
+        run: git lfs pull
+
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
