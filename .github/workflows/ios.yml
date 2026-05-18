@@ -67,6 +67,11 @@ jobs:
         run: pod install
         working-directory: example/ios
 
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun swift --version
+
       - name: Build iOS debug app for simulator
         run: |
           xcodebuild \
@@ -77,5 +82,7 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             CODE_SIGNING_ALLOWED=NO \
             COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_VERSION=5.0 \
+            SWIFT_STRICT_CONCURRENCY=minimal \
             build
         working-directory: example/ios
