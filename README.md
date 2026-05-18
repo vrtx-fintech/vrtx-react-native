@@ -45,20 +45,20 @@ errorSubscription.remove();
 
 The React Native API mirrors the Android SDK public enums:
 
-| Parameter | Enum | Values |
-| --- | --- | --- |
+| Parameter     | Enum          | Values                                       |
+| ------------- | ------------- | -------------------------------------------- |
 | `environment` | `Environment` | `Environment.Sandbox`, `Environment.Staging` |
-| `language` | `Language` | `Language.English`, `Language.Arabic` |
-| `mode` | `Mode` | `Mode.LIGHT`, `Mode.DARK` |
+| `language`    | `Language`    | `Language.English`, `Language.Arabic`        |
+| `mode`        | `Mode`        | `Mode.LIGHT`, `Mode.DARK`                    |
 
 `fontFamily` may be passed with the name of a font already bundled in the host app.
 
 ## Events
 
-| Helper | Callback payload |
-| --- | --- |
-| `onSuccess` | `() => void` |
-| `onError` | `(error: { code: string; message: string }) => void` |
+| Helper      | Callback payload                                     |
+| ----------- | ---------------------------------------------------- |
+| `onSuccess` | `() => void`                                         |
+| `onError`   | `(error: { code: string; message: string }) => void` |
 
 Both helpers return a subscription with a `remove()` method.
 

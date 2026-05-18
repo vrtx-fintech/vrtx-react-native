@@ -9,7 +9,7 @@ module.exports = async (env, argv) => {
         dangerouslyAddModulePathsToTranspile: ['vrtx-react-native'],
       },
     },
-    argv
+    argv,
   );
   config.resolve.modules = [
     path.resolve(__dirname, './node_modules'),
