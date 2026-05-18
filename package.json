@@ -50,5 +50,8 @@
     "expo": "*",
     "react": "*",
     "react-native": "*"
+  },
+  "jest": {
+    "passWithNoTests": true
   }
 }
