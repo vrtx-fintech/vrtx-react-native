@@ -32,7 +32,7 @@ jobs:
       id-token: write # reserved for npm provenance once we move to npmjs.com
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
           # The vrtx-ios xcframework is stored in Git LFS; without this
@@ -41,7 +41,7 @@ jobs:
           lfs: true
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: 24
           cache: npm
