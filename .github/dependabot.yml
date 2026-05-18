@@ -3,14 +3,14 @@ updates:
   - package-ecosystem: npm
     directory: /
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: 'chore'
+      include: 'scope'
     schedule:
       interval: weekly
     groups:
       minor-and-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
           - minor
           - patch
@@ -18,14 +18,14 @@ updates:
   - package-ecosystem: npm
     directory: /example
     commit-message:
-      prefix: "demo"
-      include: "scope"
+      prefix: 'demo'
+      include: 'scope'
     schedule:
       interval: weekly
     groups:
       minor-and-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
           - minor
           - patch
@@ -33,14 +33,14 @@ updates:
   - package-ecosystem: gradle
     directory: /android
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: 'chore'
+      include: 'scope'
     schedule:
       interval: weekly
     groups:
       minor-and-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
           - minor
           - patch
@@ -48,14 +48,14 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: 'ci'
+      include: 'scope'
     schedule:
       interval: weekly
     groups:
       minor-and-patch:
         patterns:
-          - "*"
+          - '*'
         update-types:
           - minor
           - patch

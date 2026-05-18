@@ -11,7 +11,7 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
 
   /**
    * Initialize and launch the Vrtx SDK UI flow
-   * 
+   *
    * @param clientId Your Vrtx client ID from the dashboard
    * @param clientSecret Your Vrtx client secret from the dashboard
    * @param environment The environment (SANDBOX or STAGING)
@@ -25,7 +25,7 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
     environment: 'SANDBOX' | 'STAGING',
     language: 'ENGLISH' | 'ARABIC',
     mode?: 'LIGHT' | 'DARK',
-    fontFamily?: string
+    fontFamily?: string,
   ): Promise<void>;
 }
 

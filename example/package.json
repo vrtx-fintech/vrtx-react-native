@@ -1,6 +1,7 @@
 {
   "name": "vrtx-react-native-example",
   "version": "1.0.0",
+  "private": true,
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -20,7 +21,6 @@
     "@types/react": "~19.1.0",
     "typescript": "~6.0.3"
   },
-  "private": true,
   "expo": {
     "autolinking": {
       "nativeModulesDir": ".."
