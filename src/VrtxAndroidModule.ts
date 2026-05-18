@@ -46,9 +46,3 @@ export enum Mode {
   LIGHT = 'LIGHT',
   DARK = 'DARK',
 }
-
-/** @deprecated Use Mode instead. */
-export enum ThemeMode {
-  LIGHT = 'LIGHT',
-  DARK = 'DARK',
-}
