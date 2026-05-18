@@ -18,29 +18,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        # NOTE: we deliberately do NOT use `lfs: true`. On macos-latest
-        # runners actions/checkout@v6 was observed to fetch LFS objects
-        # to cache but never materialize them in the working tree (and
-        # subsequent `git lfs pull` / `git lfs checkout` no-op'd). The
-        # framework is also published as a release asset upstream, so
-        # downloading it directly is more robust than fighting LFS in
-        # CI. The published npm tarball is unaffected — it ships the
-        # real binary from the maintainer's machine where LFS works
-        # normally.
-
-      - name: Materialize VRTX.xcframework from upstream release
-        run: |
-          rm -rf VRTX.xcframework
-          gh release download 0.0.12 \
-            -R vrtx-fintech/vrtx-ios \
-            --pattern 'VRTX.xcframework.zip' \
-            --clobber
-          unzip -q VRTX.xcframework.zip
-          rm VRTX.xcframework.zip
-          file VRTX.xcframework/ios-arm64/VRTX.framework/VRTX
-        working-directory: ios/Frameworks
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # VRTX.xcframework lives in Git LFS. With .gitattributes in
+          # the repo, checkout's smudge filter materializes the binary
+          # automatically — no extra `git lfs pull` needed.
+          lfs: true
 
       - name: Set up Node
         uses: actions/setup-node@v6
