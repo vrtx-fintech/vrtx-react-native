@@ -55,3 +55,8 @@ yarn-error.log
 
 # Expo
 .expo/*
+
+# Local env files
+.env
+.env.local
+.env*.local
