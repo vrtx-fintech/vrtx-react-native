@@ -28,8 +28,8 @@ jobs:
       url: https://github.com/${{ github.repository }}/packages
     permissions:
       contents: read
-      packages: write   # required to push to npm.pkg.github.com
-      id-token: write   # reserved for npm provenance once we move to npmjs.com
+      packages: write # required to push to npm.pkg.github.com
+      id-token: write # reserved for npm provenance once we move to npmjs.com
     steps:
       - name: Checkout
         uses: actions/checkout@v6
