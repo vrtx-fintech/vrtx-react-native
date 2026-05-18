@@ -11,8 +11,7 @@ Pod::Spec.new do |s|
   s.author         = package['author']
   s.homepage       = package['homepage']
   s.platforms      = {
-    :ios => '15.1',
-    :tvos => '15.1'
+    :ios => '15.6'
   }
   s.swift_version  = '5.9'
   s.source         = { git: 'https://github.com/vrtx-fintech/vrtx-react-native' }
@@ -20,10 +19,13 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
 
+  # VRTX iOS SDK shipped as a binary xcframework alongside this podspec.
+  s.vendored_frameworks = 'Frameworks/VRTX.xcframework'
+
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
     'DEFINES_MODULE' => 'YES',
   }
 
-  s.source_files = "**/*.{h,m,mm,swift,hpp,cpp}"
+  s.source_files = '*.{h,m,mm,swift,hpp,cpp}'
 end
