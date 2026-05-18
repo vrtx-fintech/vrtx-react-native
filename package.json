@@ -1,6 +1,6 @@
 {
   "name": "@vrtx-fintech/vrtx-react-native",
-  "version": "0.1.46",
+  "version": "0.1.47",
   "description": "vrtx react-native",
   "keywords": [
     "VrtxAndroid",
@@ -38,13 +38,16 @@
     "open:ios": "xed example/ios",
     "open:android": "cd example/android && ./gradlew :app:installDebug --no-build-cache"
   },
+  "dependencies": {
+    "react": "19.2.0"
+  },
   "devDependencies": {
     "@types/react": "~19.2.14",
     "expo": "^55.0.24",
     "expo-module-scripts": "^55.0.2",
     "oxfmt": "^0.50.0",
     "oxlint": "^1.65.0",
-    "react-native": "0.85.3"
+    "react-native": "0.83.6"
   },
   "peerDependencies": {
     "expo": "*",
