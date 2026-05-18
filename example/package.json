@@ -18,7 +18,7 @@
     "react-native": "0.83.6"
   },
   "devDependencies": {
-    "@types/react": "~19.1.0",
+    "@types/react": "~19.2.10",
     "typescript": "~6.0.3"
   },
   "expo": {
