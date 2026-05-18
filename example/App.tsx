@@ -11,7 +11,14 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Environment, Language, Mode, onError, onSuccess, setup } from 'vrtx-react-native';
+import {
+  Environment,
+  Language,
+  Mode,
+  onError,
+  onSuccess,
+  setup,
+} from '@vrtx-fintech/vrtx-react-native';
 
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
 const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
@@ -93,7 +100,7 @@ export default function App() {
         clientId: VRTX_CLIENT_ID,
         clientSecret: VRTX_CLIENT_SECRET,
         environment: VRTX_ENVIRONMENT,
-        language: language as Language,
+        language,
         mode: Mode.LIGHT,
         fontFamily: language === Language.English ? englishFont : arabicFont,
       });

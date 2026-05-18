@@ -10,7 +10,7 @@
     "postinstall": "npx expo prebuild"
   },
   "dependencies": {
-    "@vrtx-fintech/vrtx-react-native": "^0.1.46",
+    "@vrtx-fintech/vrtx-react-native": "^0.1.50",
     "expo": "^55.0.24",
     "expo-build-properties": "~55.0.14",
     "expo-font": "~55.0.7",
@@ -20,10 +20,5 @@
   "devDependencies": {
     "@types/react": "~19.2.10",
     "typescript": "~6.0.3"
-  },
-  "expo": {
-    "autolinking": {
-      "nativeModulesDir": ".."
-    }
   }
 }

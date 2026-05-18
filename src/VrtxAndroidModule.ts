@@ -32,23 +32,23 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
 // This call loads the native module object from the JSI.
 export default requireNativeModule<VrtxAndroidModule>('VrtxAndroid');
 
-export const enum Environment {
+export enum Environment {
   Sandbox = 'SANDBOX',
   Staging = 'STAGING',
 }
 
-export const enum Language {
+export enum Language {
   English = 'ENGLISH',
   Arabic = 'ARABIC',
 }
 
-export const enum Mode {
+export enum Mode {
   LIGHT = 'LIGHT',
   DARK = 'DARK',
 }
 
 /** @deprecated Use Mode instead. */
-export const enum ThemeMode {
+export enum ThemeMode {
   LIGHT = 'LIGHT',
   DARK = 'DARK',
 }
