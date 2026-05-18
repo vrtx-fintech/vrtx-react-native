@@ -1,56 +1,44 @@
 # Local Testing
 
-Use the `example` app for local smoke tests. It normally installs the published
-`@vrtx-fintech/vrtx-react-native` package, so use a temporary local link when you
-need to test unpublished changes.
+Use the `example` app for local validation through the same package flow used by
+real consumers. Do not use `npm link` for normal testing.
 
-## Test the local package through autolinking
+## After SDK changes
 
-From the repository root:
+When changing files in `src/`, `android/`, or `ios/`:
 
-```bash
-npm install
-npm run build
-```
+1. From the repository root, publish a new patch release:
 
-Then link the local package into the example app without changing
-`example/package.json`:
+   ```bash
+   npm run release
+   ```
 
-```bash
-cd example
-npm link ../
-```
+   This bumps the package version and publishes
+   `@vrtx-fintech/vrtx-react-native` to the configured registry.
 
-React Native and Expo will discover the linked package through normal
-autolinking because it appears at
-`example/node_modules/@vrtx-fintech/vrtx-react-native`.
+2. Update `example/package.json` so
+   `@vrtx-fintech/vrtx-react-native` points to the newly released version.
 
-After linking, regenerate native projects before testing native changes:
+3. Reinstall the example app dependencies:
 
-```bash
-npx expo prebuild --clean
-npm run android
-# or
-npm run ios
-```
+   ```bash
+   cd example
+   npm install
+   ```
 
-## While iterating
+4. Test the installed package through normal Expo and React Native autolinking:
 
-- Re-run `npm run build` from the repository root after changing TypeScript
-  sources, because the package entry point is `build/index.js`.
-- Re-run `npx expo prebuild --clean` from `example` after changing native module
-  registration, Expo module config, Gradle files, Podspecs, or iOS files.
+   ```bash
+   npm run android
+   # or
+   npm run ios
+   ```
+
+## Testing notes
+
+- The example app should test the published package version, not a symlinked
+  local checkout.
+- `npm install` in `example/` runs `npx expo prebuild`, so native projects are
+  regenerated before testing.
 - Rebuild the example app after native changes; Metro reloads alone is not
   enough for Android or iOS code changes.
-
-## Return to the published package
-
-When the local test is finished:
-
-```bash
-cd example
-npm unlink @vrtx-fintech/vrtx-react-native
-npm install
-```
-
-That restores the published dependency declared in `example/package.json`.
