@@ -46,20 +46,20 @@ errorSubscription.remove();
 ### iOS
 
 | Requirement | Version |
-|---|---|
-| iOS | 15.6+ |
-| Xcode | 16+ |
-| Swift | 5.9+ |
+| ----------- | ------- |
+| iOS         | 15.6+   |
+| Xcode       | 16+     |
+| Swift       | 5.9+    |
 
 ### Android
 
-| Requirement | Version |
-|---|---|
-| `minSdk` | 29 |
-| `compileSdk` | 36 |
-| Android Gradle Plugin | 8.13 |
-| Kotlin | 2.1 |
-| JVM target | 17 |
+| Requirement           | Version |
+| --------------------- | ------- |
+| `minSdk`              | 29      |
+| `compileSdk`          | 36      |
+| Android Gradle Plugin | 8.13    |
+| Kotlin                | 2.1     |
+| JVM target            | 17      |
 
 ## Contract
 
