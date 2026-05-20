@@ -1,6 +1,6 @@
 # vrtx-react-native
 
-The official Recat native SDK for Vrtx — onboarding, wallet, and card flows for your app.
+The official React Native SDK for Vrtx — onboarding, wallet, and card flows for your app.
 
 ## Install
 
