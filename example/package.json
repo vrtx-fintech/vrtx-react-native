@@ -10,7 +10,7 @@
     "postinstall": "npx expo prebuild"
   },
   "dependencies": {
-    "@vrtx-fintech/vrtx-react-native": "^0.1.51",
+    "@vrtx-fintech/vrtx-react-native": "^0.1.52",
     "expo": "~55.0.25",
     "expo-build-properties": "~55.0.14",
     "expo-font": "~55.0.8",
