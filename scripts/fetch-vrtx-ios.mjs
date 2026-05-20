@@ -17,7 +17,7 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-const VRTX_IOS_VERSION = '0.0.13';
+const VRTX_IOS_VERSION = '0.0.15';
 const RELEASE_URL = `https://github.com/vrtx-fintech/vrtx-ios/releases/download/${VRTX_IOS_VERSION}/VRTX.xcframework.zip`;
 
 const repoRoot = dirname(dirname(fileURLToPath(import.meta.url)));

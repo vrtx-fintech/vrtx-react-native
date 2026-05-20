@@ -77,3 +77,6 @@ ios/Frameworks/
 /ios/*.xcodeproj/
 /ios/*.xcworkspace/
 /app.json
+
+
+.codegraph

@@ -24,9 +24,9 @@ public class VrtxAndroidModule: Module {
       fontFamily: String?,
       promise: Promise
     ) in
-      let env: VrtxEnvironment = (environment.uppercased() == "STAGING") ? .staging : .sandbox
-      let lang: VrtxLanguage = (language.uppercased() == "ARABIC") ? .arabic : .english
-      let theme: VrtxThemeMode = (mode?.uppercased() == "DARK") ? .dark : .light
+      let env: Environment = (environment.uppercased() == "STAGING") ? .staging : .sandbox
+      let lang: Language = (language.uppercased() == "ARABIC") ? .arabic : .english
+      let theme: Mode = (mode?.uppercased() == "DARK") ? .dark : .light
       let font = fontFamily ?? ""
 
       DispatchQueue.main.async { [weak self] in
