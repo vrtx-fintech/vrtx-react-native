@@ -12,7 +12,7 @@
   "dependencies": {
     "@vrtx-fintech/vrtx-react-native": "^0.1.52",
     "expo": "~55.0.25",
-    "expo-build-properties": "~55.0.14",
+    "expo-build-properties": "~56.0.14",
     "expo-font": "~55.0.8",
     "react": "19.2.0",
     "react-native": "0.83.6"
