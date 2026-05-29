@@ -1,7 +1,3 @@
-[![Android](https://github.com/vrtx-fintech/vrtx-react-native/actions/workflows/android.yml/badge.svg?branch=main)](https://github.com/vrtx-fintech/vrtx-react-native/actions/workflows/android.yml)
-
-[![iOS](https://github.com/vrtx-fintech/vrtx-react-native/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/vrtx-fintech/vrtx-react-native/actions/workflows/ios.yml)
-
 # vrtx-react-native
 
 The official React Native SDK for Vrtx — onboarding, wallet, and card flows for your app.
