@@ -33,7 +33,7 @@
             "kotlinVersion": "2.1.20"
           },
           "ios": {
-            "deploymentTarget": "15.6"
+            "deploymentTarget": "16.6"
           }
         }
       ],
@@ -84,81 +84,186 @@
               {
                 "fontFamily": "Geom",
                 "fontDefinitions": [
-                  { "path": "./assets/font/geom_light.ttf", "weight": 300 },
-                  { "path": "./assets/font/geom_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/geom_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/geom_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/geom_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/geom_light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/font/geom_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/geom_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/geom_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/geom_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "Inter",
                 "fontDefinitions": [
-                  { "path": "./assets/font/inter_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/inter_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/inter_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/inter_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/inter_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/inter_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/inter_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/inter_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "NotoSans",
                 "fontDefinitions": [
-                  { "path": "./assets/font/noto_sans_light.ttf", "weight": 300 },
-                  { "path": "./assets/font/noto_sans_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/noto_sans_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/noto_sans_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/noto_sans_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/noto_sans_light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/font/noto_sans_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/noto_sans_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/noto_sans_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/noto_sans_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "Jura",
                 "fontDefinitions": [
-                  { "path": "./assets/font/jura_light.ttf", "weight": 300 },
-                  { "path": "./assets/font/jura_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/jura_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/jura_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/jura_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/jura_light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/font/jura_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/jura_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/jura_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/jura_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "JockeyOne",
                 "fontDefinitions": [
-                  { "path": "./assets/font/jockey_one_regular.ttf", "weight": 400 }
+                  {
+                    "path": "./assets/font/jockey_one_regular.ttf",
+                    "weight": 400
+                  }
                 ]
               },
               {
                 "fontFamily": "IBMPlexSansArabic",
                 "fontDefinitions": [
-                  { "path": "./assets/font/ibm_plex_sans_arabic_light.ttf", "weight": 300 },
-                  { "path": "./assets/font/ibm_plex_sans_arabic_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/ibm_plex_sans_arabic_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/ibm_plex_sans_arabic_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/ibm_plex_sans_arabic_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/ibm_plex_sans_arabic_light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/font/ibm_plex_sans_arabic_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/ibm_plex_sans_arabic_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/ibm_plex_sans_arabic_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/ibm_plex_sans_arabic_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "NotoKufiArabic",
                 "fontDefinitions": [
-                  { "path": "./assets/font/noto_kufi_arabic_light.ttf", "weight": 300 },
-                  { "path": "./assets/font/noto_kufi_arabic_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/noto_kufi_arabic_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/noto_kufi_arabic_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/noto_kufi_arabic_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/noto_kufi_arabic_light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/font/noto_kufi_arabic_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/noto_kufi_arabic_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/noto_kufi_arabic_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/noto_kufi_arabic_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "NotoNaskhArabic",
                 "fontDefinitions": [
-                  { "path": "./assets/font/noto_naskh_arabic_regular.ttf", "weight": 400 },
-                  { "path": "./assets/font/noto_naskh_arabic_medium.ttf", "weight": 500 },
-                  { "path": "./assets/font/noto_naskh_arabic_semibold.ttf", "weight": 600 },
-                  { "path": "./assets/font/noto_naskh_arabic_bold.ttf", "weight": 700 }
+                  {
+                    "path": "./assets/font/noto_naskh_arabic_regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/font/noto_naskh_arabic_medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/font/noto_naskh_arabic_semibold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/font/noto_naskh_arabic_bold.ttf",
+                    "weight": 700
+                  }
                 ]
               },
               {
                 "fontFamily": "ArslanWessamB",
                 "fontDefinitions": [
-                  { "path": "./assets/font/arslan_wessam_b_regular.ttf", "weight": 400 }
+                  {
+                    "path": "./assets/font/arslan_wessam_b_regular.ttf",
+                    "weight": 400
+                  }
                 ]
               }
             ]
