@@ -24,7 +24,10 @@ public class VrtxAndroidModule: Module {
       fontFamily: String?,
       promise: Promise
     ) in
-      let env: Environment = (environment.uppercased() == "STAGING") ? .staging : .sandbox
+      // Fully qualify the SDK enum: ExpoModulesCore (Expo 56+) transitively
+      // brings SwiftUI into scope, and SwiftUI also exports an `Environment`
+      // type, so the bare name is ambiguous.
+      let env: VRTX.Environment = (environment.uppercased() == "STAGING") ? .staging : .sandbox
       let lang: Language = (language.uppercased() == "ARABIC") ? .arabic : .english
       let theme: Mode = (mode?.uppercased() == "DARK") ? .dark : .light
       let font = fontFamily ?? ""
