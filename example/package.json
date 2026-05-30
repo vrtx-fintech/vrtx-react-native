@@ -10,12 +10,14 @@
     "postinstall": "npx expo prebuild"
   },
   "dependencies": {
-    "@vrtx-fintech/vrtx-react-native": "^0.1.52",
-    "expo": "~55.0.25",
-    "expo-build-properties": "~55.0.14",
+    "@vrtx-fintech/vrtx-react-native": "^0.1.53",
+    "babel-preset-expo": "~56.0.0",
+    "expo": "^56.0.5",
+    "expo-build-properties": "~56.0.16",
     "expo-font": "~56.0.5",
-    "react": "19.2.0",
-    "react-native": "0.83.6"
+    "expo-splash-screen": "~56.0.10",
+    "react": "19.2.3",
+    "react-native": "0.85.3"
   },
   "devDependencies": {
     "@types/react": "~19.2.10",
