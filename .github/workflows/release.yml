@@ -1,7 +1,7 @@
 name: Release
 
 on:
-  # Manually publish a new version from the selected branch.
+  # Manually publish a new version from main.
   workflow_dispatch:
     inputs:
       release_type:
@@ -25,13 +25,13 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # required to commit and tag manual releases
+      contents: write # required to create tags and GitHub releases
       id-token: write # required for npm provenance
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.ref }}
+          ref: main
           # The vrtx-ios xcframework is stored in Git LFS; without this
           # `pod install` would see 133-byte pointer files and npm publish
           # would ship pointers instead of the real binary.
@@ -45,8 +45,33 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Bump package version
+        id: version
         run: |
-          npm version "${{ inputs.release_type || 'patch' }}" --no-git-tag-version
+          package="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          published_version="$(npm view "$package" version 2>/dev/null || true)"
+          latest_release="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name 2>/dev/null || true)"
+
+          if [ -n "$published_version" ] &&
+            [ "$published_version" != "$package_version" ] &&
+            ! gh api "repos/$GITHUB_REPOSITORY/releases/tags/v$published_version" >/dev/null 2>&1; then
+            next_version="$published_version"
+          else
+            base_version="$(
+              printf '%s\n' "$package_version" "$published_version" "${latest_release#v}" |
+                sed '/^$/d' |
+                sort -V |
+                tail -n 1
+            )"
+            npm version "$base_version" --no-git-tag-version --allow-same-version
+            npm version "${{ inputs.release_type || 'patch' }}" --no-git-tag-version
+            next_version="$(node -p "require('./package.json').version")"
+          fi
+
+          npm version "$next_version" --no-git-tag-version --allow-same-version
+          echo "tag=v$next_version" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Install dependencies and update lockfile
         run: npm install
@@ -61,17 +86,22 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
-        run: npm publish --provenance
-        env:
-          NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-
-      - name: Commit and tag release
         run: |
-          version="v$(node -p "require('./package.json').version")"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json
-          git commit -m "chore: release $version [skip ci]"
-          git tag "$version"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
-          git push origin "$version"
+          package="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if npm view "$package@$version" version >/dev/null 2>&1; then
+            echo "$package@$version is already published; skipping npm publish."
+          else
+            npm publish --provenance
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      - name: Create GitHub release
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --target main \
+            --generate-notes \
+            --title "${{ steps.version.outputs.tag }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
