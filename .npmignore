@@ -9,6 +9,13 @@ __tests__
 
 /app.config.js
 /babel.config.js
+/AGENTS.md
+/CLAUDE.md
+/SECURITY.md
+/.oxfmtrc.json
+/.oxlintrc.json
+/src/
+/tsconfig.json
 /android/src/androidTest/
 /android/src/test/
 /android/build/
