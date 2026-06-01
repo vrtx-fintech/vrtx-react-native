@@ -16,11 +16,11 @@
     "expo-build-properties": "~56.0.16",
     "expo-font": "~56.0.5",
     "expo-splash-screen": "~56.0.10",
-    "react": "19.2.3",
+    "react": "19.2.6",
     "react-native": "0.85.3"
   },
   "devDependencies": {
-    "@types/react": "~19.2.10",
+    "@types/react": "~19.2.15",
     "typescript": "~6.0.3"
   }
 }
