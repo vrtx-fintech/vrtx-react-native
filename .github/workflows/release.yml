@@ -1,39 +1,49 @@
 name: Release
 
 on:
-  # Cut a release by publishing a GitHub Release whose tag matches the
-  # package.json version, e.g. tag `v0.1.47` when package.json is at 0.1.47.
-  release:
-    types: [published]
-  # Manual escape hatch — useful for re-running a failed publish or for
-  # publishing a hotfix tag that was created out-of-band.
+  pull_request:
+  # Manually publish a new version from the selected branch.
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Git tag to publish (e.g. v0.1.47). Must match package.json version.'
+      release_type:
+        description: 'Semantic version increment'
         required: true
-        type: string
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: read
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   publish:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    env:
+      RELEASE_BRANCH: ${{ github.head_ref || github.ref_name }}
     # The `production` environment must exist in repo Settings → Environments
     # with at least one required reviewer. That reviewer's manual approval is
-    # the gate that prevents an accidental publish from a tag push.
+    # the gate that prevents an accidental publish.
     environment:
       name: production
       url: https://www.npmjs.com/package/vrtx-react-native
     permissions:
-      contents: read
+      contents: write # required to commit and tag manual releases
       id-token: write # required for npm provenance
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          ref: ${{ env.RELEASE_BRANCH }}
           # The vrtx-ios xcframework is stored in Git LFS; without this
           # `pod install` would see 133-byte pointer files and npm publish
           # would ship pointers instead of the real binary.
@@ -46,18 +56,12 @@ jobs:
           cache: npm
           registry-url: https://registry.npmjs.org
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Verify tag matches package.json version
+      - name: Bump package version
         run: |
-          tag="${{ github.event.inputs.tag || github.ref_name }}"
-          pkg_version="v$(node -p "require('./package.json').version")"
-          if [ "$tag" != "$pkg_version" ]; then
-            echo "::error::Tag $tag does not match package.json version $pkg_version"
-            exit 1
-          fi
-          echo "Releasing $pkg_version"
+          npm version "${{ inputs.release_type || 'patch' }}" --no-git-tag-version
+
+      - name: Install dependencies and update lockfile
+        run: npm install
 
       - name: Lint
         run: npm run lint
@@ -72,3 +76,14 @@ jobs:
         run: npm publish --provenance
         env:
           NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      - name: Commit and tag release
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: release $version [skip ci]"
+          git tag "$version"
+          git push origin "HEAD:${RELEASE_BRANCH}"
+          git push origin "$version"
