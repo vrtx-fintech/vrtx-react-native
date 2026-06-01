@@ -5,7 +5,7 @@ The official React Native SDK for Vrtx — onboarding, wallet, and card flows fo
 ## Install
 
 ```bash
-npm install @vrtx-fintech/vrtx-react-native
+npm install vrtx-react-native
 ```
 
 ## Quick start
@@ -18,7 +18,7 @@ import {
   onError,
   onSuccess,
   setup,
-} from '@vrtx-fintech/vrtx-react-native';
+} from 'vrtx-react-native';
 
 const successSubscription = onSuccess(() => {
   console.log('Vrtx screen opened');

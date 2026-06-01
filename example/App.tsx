@@ -18,7 +18,7 @@ import {
   onError,
   onSuccess,
   setup,
-} from '@vrtx-fintech/vrtx-react-native';
+} from 'vrtx-react-native';
 
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
 const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
@@ -36,7 +36,8 @@ const DROPDOWN_ROW_HEIGHT = 40;
 // internal family name (extracted from the TTF's `name` table). We
 // keep the picker labels human-readable and let Platform.select
 // dispatch the platform-correct identifier.
-const pickFontValue = (ios: string, android: string) => (Platform.OS === 'ios' ? ios : android);
+const pickFontValue = (ios: string, android: string) =>
+  Platform.OS === 'ios' ? ios : android;
 
 const englishFonts = [
   { label: 'Geom', value: pickFontValue('Geom', 'Geom') },
@@ -51,8 +52,14 @@ const arabicFonts = [
     label: 'IBM Plex Sans Arabic',
     value: pickFontValue('IBM Plex Sans Arabic', 'IBMPlexSansArabic'),
   },
-  { label: 'Noto Kufi Arabic', value: pickFontValue('Noto Kufi Arabic', 'NotoKufiArabic') },
-  { label: 'Noto Naskh Arabic', value: pickFontValue('Noto Naskh Arabic', 'NotoNaskhArabic') },
+  {
+    label: 'Noto Kufi Arabic',
+    value: pickFontValue('Noto Kufi Arabic', 'NotoKufiArabic'),
+  },
+  {
+    label: 'Noto Naskh Arabic',
+    value: pickFontValue('Noto Naskh Arabic', 'NotoNaskhArabic'),
+  },
   {
     label: 'Arslan Wessam B',
     value: pickFontValue('(A) Arslan Wessam B', 'ArslanWessamB'),
@@ -64,9 +71,15 @@ type ArabicFont = (typeof arabicFonts)[number]['value'];
 
 export default function App() {
   const [language, setLanguage] = useState<Language>(Language.English);
-  const [englishFont, setEnglishFont] = useState<EnglishFont>(englishFonts[0].value);
-  const [arabicFont, setArabicFont] = useState<ArabicFont>(arabicFonts[0].value);
-  const [openDropdown, setOpenDropdown] = useState<'english' | 'arabic' | null>(null);
+  const [englishFont, setEnglishFont] = useState<EnglishFont>(
+    englishFonts[0].value,
+  );
+  const [arabicFont, setArabicFont] = useState<ArabicFont>(
+    arabicFonts[0].value,
+  );
+  const [openDropdown, setOpenDropdown] = useState<'english' | 'arabic' | null>(
+    null,
+  );
   const isArabic = language === Language.Arabic;
   const activeFontFamily = isArabic ? arabicFont : englishFont;
 
@@ -125,7 +138,10 @@ export default function App() {
           <Text
             style={[
               styles.subtitle,
-              { fontFamily: activeFontFamily, textAlign: isArabic ? 'right' : 'center' },
+              {
+                fontFamily: activeFontFamily,
+                textAlign: isArabic ? 'right' : 'center',
+              },
             ]}
           >
             {isArabic
@@ -142,15 +158,24 @@ export default function App() {
             rightLabel="AR"
             rightActive={language === Language.Arabic}
             onPress={() =>
-              setLanguage(language === Language.English ? Language.Arabic : Language.English)
+              setLanguage(
+                language === Language.English
+                  ? Language.Arabic
+                  : Language.English,
+              )
             }
           />
         </ControlRow>
 
-        <ControlRow isRtl={isArabic} label={isArabic ? 'خط الإنجليزية' : 'English Font'}>
+        <ControlRow
+          isRtl={isArabic}
+          label={isArabic ? 'خط الإنجليزية' : 'English Font'}
+        >
           <Dropdown
             isOpen={openDropdown === 'english'}
-            onToggle={() => setOpenDropdown(openDropdown === 'english' ? null : 'english')}
+            onToggle={() =>
+              setOpenDropdown(openDropdown === 'english' ? null : 'english')
+            }
             onSelect={(value) => {
               setEnglishFont(value as EnglishFont);
               setOpenDropdown(null);
@@ -160,10 +185,16 @@ export default function App() {
           />
         </ControlRow>
 
-        <ControlRow isRtl={isArabic} label={isArabic ? 'خط العربية' : 'Arabic Font'} last>
+        <ControlRow
+          isRtl={isArabic}
+          label={isArabic ? 'خط العربية' : 'Arabic Font'}
+          last
+        >
           <Dropdown
             isOpen={openDropdown === 'arabic'}
-            onToggle={() => setOpenDropdown(openDropdown === 'arabic' ? null : 'arabic')}
+            onToggle={() =>
+              setOpenDropdown(openDropdown === 'arabic' ? null : 'arabic')
+            }
             onSelect={(value) => {
               setArabicFont(value as ArabicFont);
               setOpenDropdown(null);
@@ -177,9 +208,14 @@ export default function App() {
       <Pressable
         accessibilityRole="button"
         onPress={handlePress}
-        style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryButtonPressed]}
+        style={({ pressed }) => [
+          styles.primaryButton,
+          pressed && styles.primaryButtonPressed,
+        ]}
       >
-        <Text style={[styles.primaryButtonText, { fontFamily: activeFontFamily }]}>
+        <Text
+          style={[styles.primaryButtonText, { fontFamily: activeFontFamily }]}
+        >
           {isArabic ? 'ابدأ الآن' : 'Get started'}
         </Text>
       </Pressable>
@@ -196,8 +232,16 @@ type ControlRowProps = {
 
 function ControlRow({ children, isRtl, label, last = false }: ControlRowProps) {
   return (
-    <View style={[styles.controlRow, isRtl && styles.controlRowRtl, last && styles.controlRowLast]}>
-      <Text style={[styles.controlLabel, isRtl && styles.textRtl]}>{label}</Text>
+    <View
+      style={[
+        styles.controlRow,
+        isRtl && styles.controlRowRtl,
+        last && styles.controlRowLast,
+      ]}
+    >
+      <Text style={[styles.controlLabel, isRtl && styles.textRtl]}>
+        {label}
+      </Text>
       {children}
     </View>
   );
@@ -210,16 +254,27 @@ type SegmentedControlProps = {
   rightLabel: string;
 };
 
-function SegmentedControl({ leftLabel, onPress, rightActive, rightLabel }: SegmentedControlProps) {
+function SegmentedControl({
+  leftLabel,
+  onPress,
+  rightActive,
+  rightLabel,
+}: SegmentedControlProps) {
   return (
     <View style={styles.segmentGroup}>
-      <Text style={[styles.segmentLabel, !rightActive && styles.segmentLabelActive]}>
+      <Text
+        style={[styles.segmentLabel, !rightActive && styles.segmentLabelActive]}
+      >
         {leftLabel}
       </Text>
       <Pressable onPress={onPress} style={styles.switchTrack}>
-        <View style={[styles.switchThumb, rightActive && styles.switchThumbRight]} />
+        <View
+          style={[styles.switchThumb, rightActive && styles.switchThumbRight]}
+        />
       </Pressable>
-      <Text style={[styles.segmentLabel, rightActive && styles.segmentLabelActive]}>
+      <Text
+        style={[styles.segmentLabel, rightActive && styles.segmentLabelActive]}
+      >
         {rightLabel}
       </Text>
     </View>
@@ -239,11 +294,20 @@ type DropdownProps = {
   value: string;
 };
 
-function Dropdown({ isOpen, onSelect, onToggle, options, value }: DropdownProps) {
+function Dropdown({
+  isOpen,
+  onSelect,
+  onToggle,
+  options,
+  value,
+}: DropdownProps) {
   const selected = options.find((option) => option.value === value);
   const isScrollable = options.length > 3;
   const triggerRef = useRef<View>(null);
-  const [menuPosition, setMenuPosition] = useState<{ left: number; top: number } | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -289,7 +353,8 @@ function Dropdown({ isOpen, onSelect, onToggle, options, value }: DropdownProps)
                     <Text
                       style={[
                         styles.dropdownOptionText,
-                        option.value === value && styles.dropdownOptionTextActive,
+                        option.value === value &&
+                          styles.dropdownOptionTextActive,
                       ]}
                     >
                       {option.label}
@@ -298,7 +363,10 @@ function Dropdown({ isOpen, onSelect, onToggle, options, value }: DropdownProps)
                 )}
                 scrollEnabled={isScrollable}
                 showsVerticalScrollIndicator={isScrollable}
-                style={[styles.dropdownScroll, isScrollable && styles.dropdownScrollLimited]}
+                style={[
+                  styles.dropdownScroll,
+                  isScrollable && styles.dropdownScrollLimited,
+                ]}
               />
             </View>
           )}

@@ -60,7 +60,10 @@ export async function setup(
 }
 
 // Type-safe addListener overloads
-export function addListener(eventName: 'onSuccess', callback: () => void): { remove: () => void };
+export function addListener(
+  eventName: 'onSuccess',
+  callback: () => void,
+): { remove: () => void };
 export function addListener(
   eventName: 'onError',
   callback: (error: { code: string; message: string }) => void,
@@ -77,6 +80,8 @@ export function onSuccess(callback: () => void) {
   return addListener('onSuccess', callback);
 }
 
-export function onError(callback: (error: { code: string; message: string }) => void) {
+export function onError(
+  callback: (error: { code: string; message: string }) => void,
+) {
   return addListener('onError', callback);
 }

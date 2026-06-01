@@ -14,10 +14,10 @@ When changing files in `src/`, `android/`, or `ios/`:
    ```
 
    This bumps the package version and publishes
-   `@vrtx-fintech/vrtx-react-native` to the configured registry.
+   `vrtx-react-native` to the configured registry.
 
 2. Update `example/package.json` so
-   `@vrtx-fintech/vrtx-react-native` points to the newly released version.
+   `vrtx-react-native` points to the newly released version.
 
 3. Reinstall the example app dependencies:
 
