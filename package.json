@@ -1,6 +1,6 @@
 {
-  "name": "@vrtx-fintech/vrtx-react-native",
-  "version": "0.1.55",
+  "name": "vrtx-react-native",
+  "version": "0.1.61",
   "description": "vrtx react-native",
   "keywords": [
     "VrtxAndroid",
@@ -21,7 +21,8 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
     "build": "expo-module build",

@@ -13,7 +13,7 @@ module.exports = () => {
   throw new Error(
     [
       '',
-      '@vrtx-fintech/vrtx-react-native is a library, not a runnable Expo app.',
+      'vrtx-react-native is a library, not a runnable Expo app.',
       'Run Expo commands from the ./example directory instead:',
       '',
       '  cd example',

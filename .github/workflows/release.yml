@@ -25,11 +25,10 @@ jobs:
     # the gate that prevents an accidental publish from a tag push.
     environment:
       name: production
-      url: https://github.com/${{ github.repository }}/packages
+      url: https://www.npmjs.com/package/vrtx-react-native
     permissions:
       contents: read
-      packages: write # required to push to npm.pkg.github.com
-      id-token: write # reserved for npm provenance once we move to npmjs.com
+      id-token: write # required for npm provenance
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -45,13 +44,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          registry-url: https://npm.pkg.github.com
-          scope: '@vrtx-fintech'
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify tag matches package.json version
         run: |
@@ -72,7 +68,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish to GitHub Packages
-        run: npm publish
+      - name: Publish to npm
+        run: npm publish --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
