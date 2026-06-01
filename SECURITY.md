@@ -2,20 +2,33 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Security updates are provided for the latest published version of
+`vrtx-react-native`.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Version        | Supported          |
+| -------------- | ------------------ |
+| Latest release | :white_check_mark: |
+| Older versions | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Please do not report security vulnerabilities through public GitHub issues.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Report suspected vulnerabilities privately through
+[GitHub Private Vulnerability Reporting](https://github.com/vrtx-fintech/vrtx-react-native/security/advisories/new)
+or by emailing [security@vrtx.sa](mailto:security@vrtx.sa) with:
+
+- A description of the vulnerability and its potential impact
+- Steps to reproduce or a proof of concept
+- The affected package version and platform (`Android` or `iOS`)
+- Any suggested remediation, if available
+
+Please avoid including production credentials, personal data, or customer data
+in your report. We will acknowledge receipt and provide updates as the report is
+reviewed.
+
+## Scope
+
+This policy applies to the `vrtx-react-native` package and its native Android
+and iOS integrations. For vulnerabilities affecting other Vrtx products,
+contact [security@vrtx.sa](mailto:security@vrtx.sa).
