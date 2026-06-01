@@ -35,12 +35,16 @@ async function exists(path) {
 
 async function main() {
   if (process.platform !== 'darwin') {
-    console.log('[vrtx-ios] Non-Darwin platform, skipping iOS framework fetch.');
+    console.log(
+      '[vrtx-ios] Non-Darwin platform, skipping iOS framework fetch.',
+    );
     return;
   }
 
   if (await exists(targetFramework)) {
-    console.log(`[vrtx-ios] VRTX.xcframework ${VRTX_IOS_VERSION} already present, skipping.`);
+    console.log(
+      `[vrtx-ios] VRTX.xcframework ${VRTX_IOS_VERSION} already present, skipping.`,
+    );
     return;
   }
 
@@ -51,12 +55,16 @@ async function main() {
   try {
     const res = await fetch(RELEASE_URL, { redirect: 'follow' });
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} ${res.statusText} fetching ${RELEASE_URL}`);
+      throw new Error(
+        `HTTP ${res.status} ${res.statusText} fetching ${RELEASE_URL}`,
+      );
     }
     const buf = Buffer.from(await res.arrayBuffer());
     await writeFile(tmpZip, buf);
     await execFileAsync('unzip', ['-q', tmpZip, '-d', frameworksDir]);
-    console.log(`[vrtx-ios] Installed VRTX.xcframework ${VRTX_IOS_VERSION} to ${frameworksDir}`);
+    console.log(
+      `[vrtx-ios] Installed VRTX.xcframework ${VRTX_IOS_VERSION} to ${frameworksDir}`,
+    );
   } finally {
     await rm(tmpZip, { force: true });
   }

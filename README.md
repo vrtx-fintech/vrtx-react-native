@@ -11,7 +11,14 @@ npm install vrtx-react-native
 ## Quick start
 
 ```ts
-import { Environment, Language, Mode, onError, onSuccess, setup } from 'vrtx-react-native';
+import {
+  Environment,
+  Language,
+  Mode,
+  onError,
+  onSuccess,
+  setup,
+} from 'vrtx-react-native';
 
 const successSubscription = onSuccess(() => {
   console.log('Vrtx screen opened');
