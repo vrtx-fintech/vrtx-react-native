@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  pull_request:
   # Manually publish a new version from the selected branch.
   workflow_dispatch:
     inputs:
@@ -24,18 +23,7 @@ concurrency:
 
 jobs:
   publish:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    env:
-      RELEASE_BRANCH: ${{ github.head_ref || github.ref_name }}
-    # The `production` environment must exist in repo Settings → Environments
-    # with at least one required reviewer. That reviewer's manual approval is
-    # the gate that prevents an accidental publish.
-    environment:
-      name: production
-      url: https://www.npmjs.com/package/vrtx-react-native
     permissions:
       contents: write # required to commit and tag manual releases
       id-token: write # required for npm provenance
@@ -43,7 +31,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ env.RELEASE_BRANCH }}
+          ref: ${{ github.ref }}
           # The vrtx-ios xcframework is stored in Git LFS; without this
           # `pod install` would see 133-byte pointer files and npm publish
           # would ship pointers instead of the real binary.
@@ -85,5 +73,5 @@ jobs:
           git add package.json package-lock.json
           git commit -m "chore: release $version [skip ci]"
           git tag "$version"
-          git push origin "HEAD:${RELEASE_BRANCH}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
           git push origin "$version"
