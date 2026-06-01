@@ -11,14 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import {
-  Environment,
-  Language,
-  Mode,
-  onError,
-  onSuccess,
-  setup,
-} from 'vrtx-react-native';
+import { Environment, Language, Mode, onError, onSuccess, setup } from 'vrtx-react-native';
 
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
 const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
