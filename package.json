@@ -49,21 +49,22 @@
     "open:ios": "xed example/ios",
     "open:android": "cd example/android && ./gradlew :app:installDebug --no-build-cache"
   },
-  "dependencies": {
-    "react": "19.2.6"
-  },
   "devDependencies": {
-    "@types/react": "~19.2.15",
+    "@types/react": "~19.2.16",
     "expo": "^56.0.8",
     "expo-module-scripts": "^56.0.3",
     "oxfmt": "^0.52.0",
     "oxlint": "^1.67.0",
+    "react": "19.2.7",
     "react-native": "0.85.3"
   },
   "peerDependencies": {
     "expo": "*",
     "react": "*",
     "react-native": "*"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   },
   "jest": {
     "passWithNoTests": true
