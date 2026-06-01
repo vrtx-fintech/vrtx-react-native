@@ -12,6 +12,15 @@ group = 'sa.vrtx.reactnative'
 version = '0.1.0'
 
 dependencies {
+    constraints {
+        implementation('com.google.code.gson:gson:2.14.0') {
+            because 'CVE-2022-25647 in older Gson versions pulled transitively by the Android dependency graph'
+        }
+        implementation('commons-io:commons-io:2.22.0') {
+            because 'CVE-2021-29425 in older Commons IO versions pulled transitively by the Android dependency graph'
+        }
+    }
+
     implementation 'sa.vrtx.sa:vrtx-android:0.0.12'
     implementation 'androidx.compose.ui:ui:1.6.8'
     implementation 'androidx.activity:activity-compose:1.9.0'
