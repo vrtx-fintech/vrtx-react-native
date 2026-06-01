@@ -1,12 +1,20 @@
 {
   "name": "vrtx-react-native",
-  "version": "0.1.65",
+  "version": "0.1.67",
   "description": "vrtx react-native",
   "keywords": [
-    "VrtxAndroid",
+    "android",
+    "cards",
     "expo",
+    "fintech",
+    "ios",
+    "mobile",
+    "onboarding",
     "react-native",
-    "vrtx-react-native"
+    "sdk",
+    "vrtx",
+    "vrtx-react-native",
+    "wallet"
   ],
   "homepage": "https://github.com/vrtx-fintech/vrtx-react-native#readme",
   "bugs": {
