@@ -23,5 +23,4 @@ __tests__
 /android/app/.gradle/
 /android/.kotlin/
 /example/
-# Fetched on `npm install` by scripts/fetch-vrtx-ios.mjs, never published.
 /ios/Frameworks/

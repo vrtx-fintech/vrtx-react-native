@@ -61,7 +61,7 @@ yarn-error.log
 .env.local
 .env*.local
 
-# Vendored binary frameworks — fetched at build time, not committed.
+# Swift Package Manager owns the iOS SDK binary.
 ios/Frameworks/
 
 # Output of `npx expo prebuild` run at the repo root. The library's own

@@ -40,8 +40,6 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "test": "expo-module test",
-    "fetch:ios": "node scripts/fetch-vrtx-ios.mjs",
-    "postinstall": "node scripts/fetch-vrtx-ios.mjs",
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",

@@ -19,11 +19,15 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
 
-  # The VRTX.xcframework is intentionally not committed (binary, not a
-  # source artefact). The package's `postinstall` (scripts/fetch-vrtx-ios.mjs)
-  # downloads it on `npm install` so it's already on disk by the time
-  # `pod install` resolves this entry.
-  s.vendored_frameworks = 'Frameworks/VRTX.xcframework'
+  spm_dependency(
+    s,
+    url: 'https://github.com/vrtx-fintech/vrtx-ios.git',
+    requirement: {
+      kind: 'exactVersion',
+      version: '0.0.15',
+    },
+    products: ['VRTX']
+  )
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
