@@ -16,6 +16,7 @@ __tests__
 /.oxlintrc.json
 /src/
 /tsconfig.json
+/docs/
 /android/src/androidTest/
 /android/src/test/
 /android/build/
