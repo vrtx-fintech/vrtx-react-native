@@ -1,9 +1,9 @@
 import ExpoModulesCore
 import VRTX
 
-public class VrtxAndroidModule: Module {
+public class VrtxSdkModule: Module {
   public func definition() -> ModuleDefinition {
-    Name("VrtxAndroid")
+    Name("VrtxSdk")
 
     Constant("LIBRARY_NAME") {
       return "vrtx-ios"

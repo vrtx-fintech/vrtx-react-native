@@ -1,9 +1,9 @@
 // Native module
-import VrtxAndroidModule from './VrtxAndroidModule';
+import VrtxSdkModule from './VrtxSdkModule';
 
 // Re-export enums for the public setup contract.
-export { Environment, Language, Mode } from './VrtxAndroidModule';
-export { default as VrtxAndroid } from './VrtxAndroidModule';
+export { Environment, Language, Mode } from './VrtxSdkModule';
+export { default as VrtxSdk } from './VrtxSdkModule';
 
 // Types
 export type VrtxEnvironment = 'SANDBOX' | 'STAGING';
@@ -49,7 +49,7 @@ export async function setup(
         }
       : configOrClientId;
 
-  return await VrtxAndroidModule.setup(
+  return await VrtxSdkModule.setup(
     config.clientId,
     config.clientSecret,
     config.environment,
@@ -72,7 +72,7 @@ export function addListener(
   eventName: string,
   callback: (...args: any[]) => void,
 ): { remove: () => void } {
-  return VrtxAndroidModule.addListener(eventName as any, callback);
+  return VrtxSdkModule.addListener(eventName as any, callback);
 }
 
 // Convenience wrappers

@@ -9,6 +9,8 @@ jsconfig.json
 # Xcode
 #
 build/
+# npm pack / publish tarballs
+*.tgz
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -61,7 +63,9 @@ yarn-error.log
 .env.local
 .env*.local
 
-# Swift Package Manager owns the iOS SDK binary.
+# Defensive: the Vrtx iOS SDK binary is delivered by the VRTX CocoaPods pod
+# (https://github.com/vrtx-fintech/vrtx-ios), never vendored in this repo.
+# Ignore any stray local copy so the binary can never be committed.
 ios/Frameworks/
 
 # Output of `npx expo prebuild` run at the repo root. The library's own

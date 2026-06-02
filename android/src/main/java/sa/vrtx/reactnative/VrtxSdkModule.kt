@@ -13,7 +13,7 @@ import sa.vrtx.public.configuration.Language
 import sa.vrtx.public.configuration.Mode
 import androidx.compose.ui.text.font.FontFamily
 
-class VrtxAndroidModule : Module() {
+class VrtxSdkModule : Module() {
   
   private fun getActivity(): ComponentActivity? {
     return appContext.activityProvider?.currentActivity as? ComponentActivity
@@ -35,7 +35,7 @@ class VrtxAndroidModule : Module() {
   }
   
   override fun definition() = ModuleDefinition {
-    Name("VrtxAndroid")
+    Name("VrtxSdk")
 
     Constant("LIBRARY_NAME") {
       "vrtx-android"

@@ -1,9 +1,9 @@
 {
   "platforms": ["apple", "android"],
   "apple": {
-    "modules": ["VrtxAndroidModule"]
+    "modules": ["VrtxSdkModule"]
   },
   "android": {
-    "modules": ["sa.vrtx.reactnative.VrtxAndroidModule"]
+    "modules": ["sa.vrtx.reactnative.VrtxSdkModule"]
   }
 }
