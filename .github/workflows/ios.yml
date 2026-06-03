@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 jobs:
   build-example-ios:
@@ -25,26 +24,14 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: example/package-lock.json
-          registry-url: https://npm.pkg.github.com
-          scope: '@vrtx-fintech'
-
-      # The VRTX.xcframework is not committed (binary). The package's
-      # postinstall hook normally fetches it on `npm install`; run it
-      # directly here so we don't need a full `npm ci` at the repo root.
-      - name: Fetch VRTX.xcframework
-        run: node scripts/fetch-vrtx-ios.mjs
 
       - name: Install example dependencies
         run: npm ci
         working-directory: example
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate iOS project
         run: npx expo prebuild --platform ios --no-install
         working-directory: example
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install CocoaPods dependencies
         run: pod install

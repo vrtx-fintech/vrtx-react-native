@@ -3,7 +3,7 @@ require 'json'
 package = JSON.parse(File.read(File.join(__dir__, '..', 'package.json')))
 
 Pod::Spec.new do |s|
-  s.name           = 'VrtxAndroid'
+  s.name           = 'VrtxSdk'
   s.version        = package['version']
   s.summary        = package['description']
   s.description    = package['description']
@@ -19,11 +19,11 @@ Pod::Spec.new do |s|
 
   s.dependency 'ExpoModulesCore'
 
-  # The VRTX.xcframework is intentionally not committed (binary, not a
-  # source artefact). The package's `postinstall` (scripts/fetch-vrtx-ios.mjs)
-  # downloads it on `npm install` so it's already on disk by the time
-  # `pod install` resolves this entry.
-  s.vendored_frameworks = 'Frameworks/VRTX.xcframework'
+  # The Vrtx iOS SDK ships as a binary XCFramework published to CocoaPods
+  # trunk (https://github.com/vrtx-fintech/vrtx-ios). CocoaPods downloads and
+  # embeds it automatically, mirroring how Android pulls `vrtx-android` from
+  # Maven Central. Keep this version aligned with the VRTX pod release.
+  s.dependency 'VRTX', '0.0.15'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {

@@ -16,6 +16,7 @@ __tests__
 /.oxlintrc.json
 /src/
 /tsconfig.json
+/docs/
 /android/src/androidTest/
 /android/src/test/
 /android/build/
@@ -23,5 +24,5 @@ __tests__
 /android/app/.gradle/
 /android/.kotlin/
 /example/
-# Fetched on `npm install` by scripts/fetch-vrtx-ios.mjs, never published.
+# Defensive: the VRTX binary is delivered by the VRTX CocoaPods pod, never bundled here.
 /ios/Frameworks/

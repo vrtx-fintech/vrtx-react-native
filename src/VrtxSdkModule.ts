@@ -1,12 +1,11 @@
 import { NativeModule, requireNativeModule } from 'expo';
 
-type VrtxAndroidModuleEvents = {
+type VrtxSdkModuleEvents = {
   onSuccess: () => void;
   onError: (params: { code: string; message: string }) => void;
 };
 
-declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
-  readonly VERSION: string;
+declare class VrtxSdkModule extends NativeModule<VrtxSdkModuleEvents> {
   readonly LIBRARY_NAME: string;
 
   /**
@@ -30,7 +29,7 @@ declare class VrtxAndroidModule extends NativeModule<VrtxAndroidModuleEvents> {
 }
 
 // This call loads the native module object from the JSI.
-export default requireNativeModule<VrtxAndroidModule>('VrtxAndroid');
+export default requireNativeModule<VrtxSdkModule>('VrtxSdk');
 
 export enum Environment {
   Sandbox = 'SANDBOX',
