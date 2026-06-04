@@ -41,8 +41,8 @@ public class VrtxSdkModule: Module {
           clientSecret: clientSecret,
           mode: theme,
           language: lang,
-          fontFamily: font,
           externalReference: externalReference,
+          fontFamily: font,
           onSuccess: {
             promise.resolve(nil)
             self.sendEvent("onSuccess")
