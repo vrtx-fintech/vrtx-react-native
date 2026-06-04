@@ -33,8 +33,15 @@ jobs:
         run: npx expo prebuild --platform ios --no-install
         working-directory: example
 
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods --no-document
+          pod --version
+
       - name: Install CocoaPods dependencies
-        run: pod install
+        run: |
+          pod repo update
+          pod install --repo-update
         working-directory: example/ios
 
       # ExpoModulesCore (SDK 55) uses Swift 6 closure attribute syntax
