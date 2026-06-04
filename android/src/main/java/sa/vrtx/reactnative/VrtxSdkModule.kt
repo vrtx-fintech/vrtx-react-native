@@ -50,6 +50,7 @@ class VrtxSdkModule : Module() {
       language: String, 
       mode: String?,
       fontFamilyName: String?,
+      externalReference: String?,
       promise: Promise ->
       
       val env = when(environment.uppercase()) {
@@ -84,6 +85,7 @@ class VrtxSdkModule : Module() {
             language = lang,
             mode = selectedMode,
             fontFamily = fontFamily,
+            externalReference = externalReference,
             onSuccess = {
               promise.resolve(null)
               sendEvent("onSuccess")
