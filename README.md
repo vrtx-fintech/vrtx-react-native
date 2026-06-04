@@ -34,6 +34,7 @@ await setup({
   environment: Environment.Sandbox,
   language: Language.English,
   mode: Mode.LIGHT,
+  externalReference: 'your-external-reference',
 });
 
 // Remove listeners when they are no longer needed.
@@ -65,13 +66,15 @@ errorSubscription.remove();
 
 The React Native API mirrors the Android SDK public enums:
 
-| Parameter     | Enum          | Values                                       |
-| ------------- | ------------- | -------------------------------------------- |
-| `environment` | `Environment` | `Environment.Sandbox`, `Environment.Staging` |
-| `language`    | `Language`    | `Language.English`, `Language.Arabic`        |
-| `mode`        | `Mode`        | `Mode.LIGHT`, `Mode.DARK`                    |
+| Parameter           | Enum          | Values                                       |
+| ------------------- | ------------- | -------------------------------------------- |
+| `environment`       | `Environment` | `Environment.Sandbox`, `Environment.Staging` |
+| `language`          | `Language`    | `Language.English`, `Language.Arabic`        |
+| `mode`              | `Mode`        | `Mode.LIGHT`, `Mode.DARK`                    |
+| `externalReference` | `string`      | Optional app-provided SDK session reference  |
 
 `fontFamily` may be passed with the name of a font already bundled in the host app.
+`externalReference` may be passed as a string when your app needs to attach its own reference to the SDK session.
 
 ## Events
 

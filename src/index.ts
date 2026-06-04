@@ -17,6 +17,7 @@ export interface VrtxConfig {
   language?: VrtxLanguage;
   mode?: VrtxMode;
   fontFamily?: string;
+  externalReference?: string;
 }
 
 // Promise-based setup function - resolves when SDK screen opens
@@ -28,6 +29,7 @@ export function setup(
   language?: VrtxLanguage,
   mode?: VrtxMode,
   fontFamily?: string,
+  externalReference?: string,
 ): Promise<void>;
 export async function setup(
   configOrClientId: VrtxConfig | string,
@@ -36,6 +38,7 @@ export async function setup(
   language: VrtxLanguage = 'ENGLISH',
   mode?: VrtxMode,
   fontFamily?: string,
+  externalReference?: string,
 ): Promise<void> {
   const config =
     typeof configOrClientId === 'string'
@@ -46,6 +49,7 @@ export async function setup(
           language,
           mode,
           fontFamily,
+          externalReference,
         }
       : configOrClientId;
 
@@ -56,6 +60,7 @@ export async function setup(
     config.language ?? 'ENGLISH',
     config.mode,
     config.fontFamily,
+    config.externalReference,
   );
 }
 

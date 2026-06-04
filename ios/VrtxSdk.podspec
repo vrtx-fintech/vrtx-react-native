@@ -23,7 +23,7 @@ Pod::Spec.new do |s|
   # trunk (https://github.com/vrtx-fintech/vrtx-ios). CocoaPods downloads and
   # embeds it automatically, mirroring how Android pulls `vrtx-android` from
   # Maven Central. Keep this version aligned with the VRTX pod release.
-  s.dependency 'VRTX', '0.0.15'
+  s.dependency 'VRTX', '0.0.16'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {

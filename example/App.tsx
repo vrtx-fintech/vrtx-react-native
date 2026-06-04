@@ -30,6 +30,21 @@ const DROPDOWN_MENU_WIDTH = 196;
 const DROPDOWN_VISIBLE_ROWS = 3;
 const DROPDOWN_ROW_HEIGHT = 40;
 
+const generateExternalReference = () => {
+  const cryptoApi = globalThis.crypto;
+
+  if (typeof cryptoApi?.randomUUID === 'function') {
+    return cryptoApi.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const random = Math.floor(Math.random() * 16);
+    const value = char === 'x' ? random : (random & 0x3) | 0x8;
+
+    return value.toString(16);
+  });
+};
+
 // Font lookup keys differ per platform: Android resolves a JS string
 // against the resource name registered in the expo-font plugin
 // (sanitised, no spaces); iOS resolves against the font file's own
@@ -116,6 +131,7 @@ export default function App() {
         language,
         mode: Mode.LIGHT,
         fontFamily: language === Language.English ? englishFont : arabicFont,
+        externalReference: generateExternalReference(),
       });
       console.log('Vrtx SDK launched successfully');
     } catch (error: any) {

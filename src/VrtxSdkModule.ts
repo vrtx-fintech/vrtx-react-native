@@ -17,6 +17,7 @@ declare class VrtxSdkModule extends NativeModule<VrtxSdkModuleEvents> {
    * @param language The language for the UI (ENGLISH or ARABIC)
    * @param mode Optional display mode (LIGHT or DARK) - defaults to LIGHT
    * @param fontFamily Optional React Native font family name - defaults to the system font
+   * @param externalReference Optional app-provided reference attached to the SDK session
    */
   setup(
     clientId: string,
@@ -25,6 +26,7 @@ declare class VrtxSdkModule extends NativeModule<VrtxSdkModuleEvents> {
     language: 'ENGLISH' | 'ARABIC',
     mode?: 'LIGHT' | 'DARK',
     fontFamily?: string,
+    externalReference?: string,
   ): Promise<void>;
 }
 

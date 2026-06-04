@@ -22,6 +22,7 @@ public class VrtxSdkModule: Module {
       language: String,
       mode: String?,
       fontFamily: String?,
+      externalReference: String?,
       promise: Promise
     ) in
       // Fully qualify the SDK enum: ExpoModulesCore (Expo 56+) transitively
@@ -41,6 +42,7 @@ public class VrtxSdkModule: Module {
           mode: theme,
           language: lang,
           fontFamily: font,
+          externalReference: externalReference,
           onSuccess: {
             promise.resolve(nil)
             self.sendEvent("onSuccess")
