@@ -11,16 +11,16 @@
   },
   "dependencies": {
     "babel-preset-expo": "~56.0.0",
-    "expo": "^56.0.5",
-    "expo-build-properties": "~56.0.16",
+    "expo": "^56.0.9",
+    "expo-build-properties": "~56.0.17",
     "expo-font": "~56.0.5",
     "expo-splash-screen": "~56.0.10",
-    "react": "19.2.6",
+    "react": "19.2.7",
     "react-native": "0.85.3",
-    "vrtx-react-native": "^0.1.74"
+    "vrtx-react-native": "^0.1.75"
   },
   "devDependencies": {
-    "@types/react": "~19.2.15",
+    "@types/react": "~19.2.17",
     "typescript": "~6.0.3"
   }
 }
