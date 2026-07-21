@@ -101,3 +101,53 @@ jobs:
             --title "${{ steps.version.outputs.tag }}"
         env:
           GH_TOKEN: ${{ github.token }}
+
+      # Announce the release in Slack, matching the iOS/Android SDK release
+      # workflows. Failures are downgraded to warnings so a Slack outage or a
+      # missing webhook never fails an otherwise successful publish.
+      - name: Notify Slack
+        env:
+          WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TAG: ${{ steps.version.outputs.tag }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${WEBHOOK}" ]; then
+            echo "::warning::SLACK_WEBHOOK_URL is not set; skipping release announcement."
+            exit 0
+          fi
+          VERSION="${TAG#v}"
+          TITLE="React Native SDK ${VERSION} Available"
+          # Reuse the auto-generated GitHub release notes as the announcement
+          # body, so notes exist in exactly one place.
+          NOTES="$(gh release view "${TAG}" --json body --jq .body || true)"
+          if [ -z "${NOTES}" ]; then
+            NOTES="See the GitHub release for details."
+          fi
+          # Slack section blocks reject text over 3000 characters.
+          NOTES="${NOTES:0:2900}"
+          RELEASE_URL="https://github.com/${REPO}/releases/tag/${TAG}"
+          NPM_URL="https://www.npmjs.com/package/vrtx-react-native/v/${VERSION}"
+          CONTEXT="<${RELEASE_URL}|GitHub release ${TAG}> · <${NPM_URL}|npm ${VERSION}>"
+          PAYLOAD=$(jq -n \
+            --arg title "${TITLE}" \
+            --arg notes "${NOTES}" \
+            --arg context "${CONTEXT}" \
+            '{
+              blocks: [
+                {type: "header", text: {type: "plain_text", text: $title}},
+                {type: "section", text: {type: "mrkdwn", text: $notes}},
+                {type: "context", elements: [{type: "mrkdwn", text: $context}]}
+              ]
+            }')
+          response=$(curl -sS --fail-with-body -X POST \
+            -H 'Content-Type: application/json' \
+            --data "${PAYLOAD}" "${WEBHOOK}") || {
+            echo "::warning::Slack webhook curl failed: ${response}"
+            exit 0
+          }
+          if [ "${response}" != "ok" ]; then
+            echo "::warning::Slack webhook responded: ${response}"
+          fi
