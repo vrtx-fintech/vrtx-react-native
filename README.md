@@ -123,6 +123,19 @@ echo -n "SHA256_HEX_WITHOUT_COLONS" | xxd -r -p | base64
 
 Run a native rebuild after changing the hash; a Metro reload is not enough.
 
+freeRASP disables Android backups. Configure the host app to use the same
+value to avoid a manifest-merger conflict. For Expo, add this to `app.json`:
+
+```json
+{
+  "expo": {
+    "android": {
+      "allowBackup": false
+    }
+  }
+}
+```
+
 ### Android CI secrets
 
 For a release build in GitHub Actions, store the signing material as repository
