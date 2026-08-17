@@ -32,6 +32,14 @@ jobs:
         run: npx expo prebuild --platform android --no-install
         working-directory: example
 
+      # The Talsec freeRASP artifact is not published to Maven Central. Expo
+      # regenerates this Gradle file during prebuild, so add the repository
+      # after generation for this CI-only example build.
+      - name: Add Talsec freeRASP repository
+        run: |
+          printf '%s\n' '' 'allprojects {' '  repositories {' "    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }" '  }' '}' >> build.gradle
+        working-directory: example/android
+
       - name: Set up Java
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
