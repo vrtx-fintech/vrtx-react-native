@@ -13,6 +13,16 @@ repositories {
 group = 'sa.vrtx.reactnative'
 version = '0.1.0'
 
+// vrtx-android 0.1.1 uses Lifecycle 2.11, which requires AGP 9.1. Keep this
+// module compatible with Expo SDK 57's AGP 8.12 without exporting a strict
+// constraint to the host application's dependency graph.
+configurations.configureEach {
+  resolutionStrategy {
+    force 'androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0'
+    force 'androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0'
+  }
+}
+
 dependencies {
     implementation 'sa.vrtx.sa:vrtx-android:0.1.1'
     implementation 'androidx.compose.ui:ui:1.6.8'

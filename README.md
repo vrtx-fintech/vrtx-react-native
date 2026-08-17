@@ -59,7 +59,7 @@ errorSubscription.remove();
 | `minSdk`              | 29      |
 | `compileSdk`          | 37      |
 | Android Gradle Plugin | 8.13    |
-| Kotlin                | 2.1.x   |
+| Kotlin                | 2.4.x   |
 | JVM target            | 17      |
 
 ## Contract
