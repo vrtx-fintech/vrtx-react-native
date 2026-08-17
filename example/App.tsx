@@ -23,8 +23,8 @@ import {
 const VRTX_CLIENT_ID = process.env.EXPO_PUBLIC_VRTX_CLIENT_ID;
 const VRTX_CLIENT_SECRET = process.env.EXPO_PUBLIC_VRTX_CLIENT_SECRET;
 const VRTX_ENVIRONMENT =
-  process.env.EXPO_PUBLIC_VRTX_ENVIRONMENT === Environment.Staging
-    ? Environment.Staging
+  process.env.EXPO_PUBLIC_VRTX_ENVIRONMENT === Environment.Production
+    ? Environment.Production
     : Environment.Sandbox;
 const DROPDOWN_MENU_WIDTH = 196;
 const DROPDOWN_VISIBLE_ROWS = 3;

@@ -13,7 +13,7 @@ declare class VrtxSdkModule extends NativeModule<VrtxSdkModuleEvents> {
    *
    * @param clientId Your Vrtx client ID from the dashboard
    * @param clientSecret Your Vrtx client secret from the dashboard
-   * @param environment The environment (SANDBOX or STAGING)
+   * @param environment The environment (SANDBOX or PRODUCTION)
    * @param language The language for the UI (ENGLISH or ARABIC)
    * @param mode Optional display mode (LIGHT or DARK) - defaults to LIGHT
    * @param fontFamily Optional React Native font family name - defaults to the system font
@@ -22,7 +22,7 @@ declare class VrtxSdkModule extends NativeModule<VrtxSdkModuleEvents> {
   setup(
     clientId: string,
     clientSecret: string,
-    environment: 'SANDBOX' | 'STAGING',
+    environment: 'SANDBOX' | 'PRODUCTION',
     language: 'ENGLISH' | 'ARABIC',
     mode?: 'LIGHT' | 'DARK',
     fontFamily?: string,
@@ -35,7 +35,7 @@ export default requireNativeModule<VrtxSdkModule>('VrtxSdk');
 
 export enum Environment {
   Sandbox = 'SANDBOX',
-  Staging = 'STAGING',
+  Production = 'PRODUCTION',
 }
 
 export enum Language {

@@ -54,7 +54,7 @@ class VrtxSdkModule : Module() {
       promise: Promise ->
       
       val env = when(environment.uppercase()) {
-        "STAGING" -> Environment.Staging
+        "PRODUCTION" -> Environment.Production
         else -> Environment.Sandbox
       }
       
