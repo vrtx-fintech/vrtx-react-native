@@ -58,7 +58,7 @@ jobs:
         working-directory: example/android
 
       - name: Build Android release app
-        run: ./gradlew app:assembleRelease
+        run: ./gradlew app:assembleRelease --refresh-dependencies
         working-directory: example/android
         env:
           NODE_ENV: production
