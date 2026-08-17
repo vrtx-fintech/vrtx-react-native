@@ -38,14 +38,12 @@ jobs:
         working-directory: example/ios
 
       # ExpoModulesCore (SDK 55) uses Swift 6 closure attribute syntax
-      # (e.g. `@MainActor` on closure types) that Xcode 16.4 — the default
-      # on macos-latest at time of writing — does not understand. Pin to
-      # the latest stable Xcode (26.x family), which matches the maintainer
-      # toolchain that the SDK is actually tested against.
+      # VRTX 0.1.2 was built with Swift 6.2.4. Xcode 26.4 provides the
+      # matching compiler; newer Swift toolchains reject its binary interface.
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
-          xcode-version: latest-stable
+          xcode-version: '26.4'
 
       - name: Show toolchain
         run: |
