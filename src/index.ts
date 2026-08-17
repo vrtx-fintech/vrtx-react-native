@@ -6,7 +6,7 @@ export { Environment, Language, Mode } from './VrtxSdkModule';
 export { default as VrtxSdk } from './VrtxSdkModule';
 
 // Types
-export type VrtxEnvironment = 'SANDBOX' | 'STAGING';
+export type VrtxEnvironment = 'SANDBOX' | 'PRODUCTION';
 export type VrtxLanguage = 'ENGLISH' | 'ARABIC';
 export type VrtxMode = 'LIGHT' | 'DARK';
 
