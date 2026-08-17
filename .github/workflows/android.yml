@@ -37,8 +37,7 @@ jobs:
       # required by its AGP 8.12 toolchain.
       - name: Configure FreeRASP Android dependencies
         run: |
-          printf '%s\n' '' 'allprojects {' '  repositories {' "    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }" '  }' '}' >> build.gradle
-          printf '%s\n' '' 'configurations.configureEach {' '  resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")' '  resolutionStrategy.force("androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0")' '  resolutionStrategy.force("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0")' '}' >> app/build.gradle
+          printf '%s\n' '' 'allprojects {' '  repositories {' "    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }" '  }' '  configurations.configureEach {' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0")' '  }' '}' >> build.gradle
         working-directory: example/android
 
       - name: Set up Java
