@@ -32,6 +32,15 @@ jobs:
         run: npx expo prebuild --platform android --no-install
         working-directory: example
 
+      # Expo regenerates these Gradle files during prebuild. Configure the
+      # generated app with the FreeRASP repository and the dependency pins
+      # required by its AGP 8.12 toolchain.
+      - name: Configure FreeRASP Android dependencies
+        run: |
+          printf '%s\n' '' 'allprojects {' '  repositories {' "    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }" '  }' '  configurations.configureEach {' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-reflect:2.1.20")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0")' '    resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-serialization-")) { useVersion("1.8.1") } }' '    resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-datetime")) { useVersion("0.7.1") } }' '  }' '}' >> build.gradle
+          printf '%s\n' '' 'android {' '  defaultConfig {' '    manifestPlaceholders.vrtxPackageName = applicationId' '    manifestPlaceholders.vrtxCertHash = System.getenv("VRTX_CERT_HASH") ?: ""' '  }' '}' >> app/build.gradle
+        working-directory: example/android
+
       - name: Set up Java
         uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
         with:
@@ -49,8 +58,13 @@ jobs:
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
         working-directory: example/android
 
-      - name: Build Android debug app
-        run: ./gradlew app:assembleDebug
+      - name: Build Android release app
+        run: ./gradlew app:assembleRelease --refresh-dependencies
         working-directory: example/android
         env:
           NODE_ENV: production
+          VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
