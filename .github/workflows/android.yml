@@ -38,6 +38,7 @@ jobs:
       - name: Configure FreeRASP Android dependencies
         run: |
           printf '%s\n' '' 'allprojects {' '  repositories {' "    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }" '  }' '  configurations.configureEach {' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-reflect:2.1.20")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0")' '    resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-serialization-")) { useVersion("1.8.1") } }' '    resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-datetime")) { useVersion("0.7.1") } }' '  }' '}' >> build.gradle
+          printf '%s\n' '' 'android {' '  defaultConfig {' '    manifestPlaceholders.vrtxPackageName = applicationId' '    manifestPlaceholders.vrtxCertHash = System.getenv("VRTX_CERT_HASH") ?: ""' '  }' '}' >> app/build.gradle
         working-directory: example/android
 
       - name: Set up Java
