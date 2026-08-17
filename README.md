@@ -76,11 +76,6 @@ The React Native API mirrors the Android SDK public enums:
 `fontFamily` may be passed with the name of a font already bundled in the host app.
 `externalReference` may be passed as a string when your app needs to attach its own reference to the SDK session.
 
-### Environments
-
-Use `Environment.Sandbox` for non-production testing and `Environment.Production`
-for live credentials. The React Native SDK does not expose a staging environment.
-
 ## Events
 
 | Helper      | Callback payload                                     |
