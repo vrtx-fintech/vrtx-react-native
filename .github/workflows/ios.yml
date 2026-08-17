@@ -52,16 +52,48 @@ jobs:
           xcodebuild -version
           xcrun swift --version
 
-      - name: Build iOS debug app for simulator
+      - name: Install iOS signing assets
+        id: signing
+        run: |
+          if [ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" ] || [ -z "$IOS_PROVISIONING_PROFILE_BASE64" ]; then
+            echo "::warning::iOS signing secrets are unavailable; skipping the signed release archive."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          certificate_path="$RUNNER_TEMP/distribution.p12"
+          keychain_path="$RUNNER_TEMP/build.keychain-db"
+          profiles_path="$HOME/Library/MobileDevice/Provisioning Profiles"
+
+          echo "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
+          mkdir -p "$profiles_path"
+          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$profiles_path/vrtx.mobileprovision"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
+          security import "$certificate_path" -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain_path"
+          security list-keychain -d user -s "$keychain_path" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$keychain_path"
+
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+        env:
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+      - name: Archive signed iOS release app
+        if: steps.signing.outputs.configured == 'true'
         run: |
           xcodebuild \
             -workspace vrtxreactnativeexample.xcworkspace \
             -scheme vrtxreactnativeexample \
-            -configuration Debug \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/vrtx-react-native-example.xcarchive" \
             COMPILER_INDEX_STORE_ENABLE=NO \
             SWIFT_STRICT_CONCURRENCY=minimal \
-            build
+            archive
         working-directory: example/ios
