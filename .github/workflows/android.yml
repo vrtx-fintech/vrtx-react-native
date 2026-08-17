@@ -49,8 +49,13 @@ jobs:
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
         working-directory: example/android
 
-      - name: Build Android debug app
-        run: ./gradlew app:assembleDebug
+      - name: Build Android release app
+        run: ./gradlew app:assembleRelease
         working-directory: example/android
         env:
           NODE_ENV: production
+          VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}

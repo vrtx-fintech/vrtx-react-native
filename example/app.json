@@ -29,6 +29,7 @@
         "expo-build-properties",
         {
           "android": {
+            "compileSdkVersion": 37,
             "minSdkVersion": 29,
             "kotlinVersion": "2.1.20"
           },
