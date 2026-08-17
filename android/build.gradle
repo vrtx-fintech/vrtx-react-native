@@ -13,13 +13,23 @@ repositories {
 group = 'sa.vrtx.reactnative'
 version = '0.1.0'
 
-// vrtx-android 0.1.1 uses Lifecycle 2.11, which requires AGP 9.1. Keep this
-// module compatible with Expo SDK 57's AGP 8.12 without exporting a strict
-// constraint to the host application's dependency graph.
+// Keep the native SDK's newer Kotlin dependencies compatible with Expo SDK 57's
+// Kotlin 2.1 / AGP 8.12 toolchain. This is local resolution only, not an
+// exported strict constraint on the host application's dependency graph.
 configurations.configureEach {
   resolutionStrategy {
+    force 'org.jetbrains.kotlin:kotlin-stdlib:2.1.20'
+    force 'org.jetbrains.kotlin:kotlin-reflect:2.1.20'
     force 'androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0'
     force 'androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0'
+    eachDependency {
+      if (requested.group == 'org.jetbrains.kotlinx' && requested.name.startsWith('kotlinx-serialization-')) {
+        useVersion '1.8.1'
+      }
+      if (requested.group == 'org.jetbrains.kotlinx' && requested.name.startsWith('kotlinx-datetime')) {
+        useVersion '0.7.1'
+      }
+    }
   }
 }
 
