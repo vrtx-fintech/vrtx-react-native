@@ -43,12 +43,13 @@
     "prepare": "expo-module prepare",
     "prepublishOnly": "expo-module prepublishOnly",
     "expo-module": "expo-module",
-    "release": "npm version patch --no-git-tag-version && npm publish",
+    "release": "echo \"Releases are published by CI: Actions -> Release. See README > Releasing.\" && exit 1",
     "open:ios": "xed example/ios",
     "open:android": "cd example/android && ./gradlew :app:installDebug --no-build-cache"
   },
   "devDependencies": {
     "@types/react": "~19.2.15",
+    "babel-preset-expo": "~57.0.4",
     "expo": "^57.0.4",
     "expo-module-scripts": "^56.0.3",
     "oxfmt": "^0.60.0",
@@ -61,14 +62,14 @@
     "react-native": ">=0.76.0"
   },
   "overrides": {
-    "brace-expansion@1": "1.1.16",
-    "brace-expansion@5": "5.0.7",
-    "js-yaml@3": "3.15.0",
-    "js-yaml@4": "4.3.0",
+    "brace-expansion@1": "1.1.18",
+    "brace-expansion@5": "5.0.9",
+    "js-yaml@3": "3.15.1",
+    "js-yaml@4": "4.3.1",
     "ws@7": "7.5.11",
     "ws@8": "8.21.0"
   },
   "jest": {
-    "passWithNoTests": true
+    "preset": "expo-module-scripts"
   }
 }
