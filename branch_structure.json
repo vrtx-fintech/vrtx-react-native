@@ -1,0 +1,24 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "ci/ios-build-verification",
+    "codex/harden-ios-framework-fetch",
+    "docs/update-readme",
+    "fix/ios-error-propagation",
+    "main"
+  ],
+  "parent": {
+    "ci/ios-build-verification": "main",
+    "codex/harden-ios-framework-fetch": "main",
+    "docs/update-readme": "main",
+    "fix/ios-error-propagation": "main",
+    "main": null
+  },
+  "order": [
+    "main",
+    "ci/ios-build-verification",
+    "codex/harden-ios-framework-fetch",
+    "docs/update-readme",
+    "fix/ios-error-propagation"
+  ]
+}
