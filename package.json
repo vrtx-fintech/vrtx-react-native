@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.15",
+    "babel-preset-expo": "~57.0.4",
     "expo": "^57.0.4",
     "expo-module-scripts": "^56.0.3",
     "oxfmt": "^0.60.0",
@@ -69,6 +70,6 @@
     "ws@8": "8.21.0"
   },
   "jest": {
-    "passWithNoTests": true
+    "preset": "expo-module-scripts"
   }
 }
