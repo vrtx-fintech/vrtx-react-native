@@ -157,6 +157,10 @@ certificate used by that signing configuration must be the one used to derive
 ## iOS TestFlight distribution
 
 No FreeRASP certificate hash or additional VRTX secret is required for iOS.
+The freeRASP runtime ships inside the `VRTX` pod itself, so `pod install` is
+the only step — there is nothing to add to your `Podfile` and no Talsec
+repository to configure, unlike Android.
+
 For a TestFlight build, consumers should:
 
 1. Register the final bundle identifier in Apple Developer and configure a
