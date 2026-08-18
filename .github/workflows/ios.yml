@@ -37,13 +37,17 @@ jobs:
         run: pod install
         working-directory: example/ios
 
-      # ExpoModulesCore (SDK 55) uses Swift 6 closure attribute syntax
-      # VRTX 0.1.2 was built with Swift 6.2.4. Xcode 26.4 provides the
-      # matching compiler; newer Swift toolchains reject its binary interface.
+      # Pinned to 26.4 while VRTX <= 0.1.5 leaked DeviceKit into its public
+      # .swiftinterface: rebuilding that interface failed with "cannot load
+      # underlying module for 'DeviceKit'", and Swift reported it as a
+      # compiler-version mismatch, so the pin looked like a toolchain
+      # requirement. It never was. VRTX 0.1.6 keeps DeviceKit out of the ABI and
+      # builds on current Xcode — verified against 26.4 (Swift 6.3.1) here and
+      # Xcode 26.6 (Swift 6.3.3) locally — so CI tracks latest-stable again.
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
-          xcode-version: '26.4'
+          xcode-version: latest-stable
 
       - name: Show toolchain
         run: |
