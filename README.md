@@ -123,18 +123,31 @@ echo -n "SHA256_HEX_WITHOUT_COLONS" | xxd -r -p | base64
 
 Run a native rebuild after changing the hash; a Metro reload is not enough.
 
-freeRASP disables Android backups. Configure the host app to use the same
-value to avoid a manifest-merger conflict. For Expo, add this to `app.json`:
+freeRASP disables Android backups and enforces certain network/security settings.
+To avoid manifest-merger conflicts, configure the host app with the same values
+that the SDK expects. For Expo, add these to `app.json`:
 
 ```json
 {
   "expo": {
     "android": {
-      "allowBackup": false
+      "allowBackup": false,
+      "usesCleartextTraffic": false
     }
   }
 }
 ```
+
+If you are using a native Android app rather than Expo, set the equivalent values
+in `AndroidManifest.xml`:
+
+```xml
+<application
+  android:allowBackup="false"
+  android:usesCleartextTraffic="false" />
+```
+
+This prevents conflicts with the `vrtx-android` freeRASP manifest configuration.
 
 ### Android CI secrets
 
