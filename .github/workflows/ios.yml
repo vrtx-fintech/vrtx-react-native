@@ -37,9 +37,11 @@ jobs:
         run: pod install
         working-directory: example/ios
 
-      # ExpoModulesCore (SDK 55) uses Swift 6 closure attribute syntax
-      # VRTX 0.1.2 was built with Swift 6.2.4. Xcode 26.4 provides the
-      # matching compiler; newer Swift toolchains reject its binary interface.
+      # ExpoModulesCore (SDK 55) uses Swift 6 closure attribute syntax.
+      # VRTX ships only a .swiftinterface (no binary .swiftmodule), so `import
+      # VRTX` recompiles that interface with the local toolchain. It is built
+      # with Swift 6.2.4; Xcode 26.4 provides the matching compiler and newer
+      # toolchains reject it. Re-check this pin whenever VRTX is bumped.
       - name: Set up Xcode
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
@@ -50,40 +52,105 @@ jobs:
           xcodebuild -version
           xcrun swift --version
 
+      # Always runs, needs no secrets, and works on forks. This is the step
+      # that verifies the VRTX pod pin: `import VRTX` in VrtxSdkModule.swift
+      # recompiles VRTX's .swiftinterface, which opens with `import
+      # TalsecRuntime` and `import DeviceKit`, so a pod that cannot supply
+      # those fails here. Nothing else in this job compiles Swift against the
+      # SDK — the signed archive below is skipped whenever signing secrets are
+      # absent, which is how 0.1.86 shipped pinning an uninstallable VRTX
+      # 0.1.2 with a green iOS build.
+      - name: Build example for simulator (unsigned)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -workspace vrtxreactnativeexample.xcworkspace \
+            -scheme vrtxreactnativeexample \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            SWIFT_STRICT_CONCURRENCY=minimal \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+        working-directory: example/ios
+
+      # Signing produces a device-installable archive, which the simulator
+      # build cannot: freeRASP's integrity checks do not fully exercise on a
+      # simulator, so device builds are what actually prove Talsec works.
       - name: Install iOS signing assets
         id: signing
+        env:
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          ASC_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
-          if [ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" ] || [ -z "$IOS_PROVISIONING_PROFILE_BASE64" ]; then
-            echo "::warning::iOS signing secrets are unavailable; skipping the signed release archive."
+          set -euo pipefail
+
+          # Three states, kept distinct. Nothing configured skips (correct on
+          # forks). *Partially* configured is always a mistake — usually a
+          # secret under the wrong name — and must not look like the skip case,
+          # because that reports success while archiving nothing.
+          present=(); missing=()
+          for name in IOS_DISTRIBUTION_CERTIFICATE_BASE64 IOS_DISTRIBUTION_CERTIFICATE_PASSWORD \
+                      KEYCHAIN_PASSWORD ASC_KEY_BASE64 ASC_KEY_ID ASC_ISSUER_ID; do
+            if [ -n "${!name}" ]; then present+=("$name"); else missing+=("$name"); fi
+          done
+
+          if [ "${#present[@]}" -eq 0 ]; then
+            echo "::warning::No iOS signing secrets configured; skipping the signed release archive."
             echo "configured=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::iOS signing is partially configured. Missing: ${missing[*]}"
+            exit 1
+          fi
+
           certificate_path="$RUNNER_TEMP/distribution.p12"
           keychain_path="$RUNNER_TEMP/build.keychain-db"
-          profiles_path="$HOME/Library/MobileDevice/Provisioning Profiles"
+          # Signing material: drop the decoded p12 once it is in the keychain.
+          trap 'rm -f "$certificate_path"' EXIT
 
-          echo "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
-          mkdir -p "$profiles_path"
-          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$profiles_path/vrtx.mobileprovision"
+          printf '%s' "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
 
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
           security set-keychain-settings -lut 21600 "$keychain_path"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
-          security import "$certificate_path" -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain_path"
-          security list-keychain -d user -s "$keychain_path" login.keychain-db
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$keychain_path"
+          security import "$certificate_path" -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$keychain_path"
+          # `codesign:` is added explicitly so codesign can use the imported key
+          # non-interactively, matching vrtx-sdk-ios.
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$keychain_path"
+          # `list-keychains` is plural — the singular form is not a subcommand,
+          # so the temp keychain was never added to the search list. Existing
+          # keychains are appended rather than replaced.
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$keychain_path" $(security list-keychains -d user | tr -d '"')
 
+          # `expo prebuild` regenerates the Xcode project on every run, so a
+          # committed provisioning profile specifier would be overwritten each
+          # time. The App Store Connect API key lets xcodebuild register the
+          # bundle ID and generate the profile itself via
+          # -allowProvisioningUpdates, which survives regeneration.
+          key_dir="$RUNNER_TEMP/private_keys"
+          mkdir -p "$key_dir"
+          printf '%s' "$ASC_KEY_BASE64" | base64 --decode > "$key_dir/AuthKey_${ASC_KEY_ID}.p8"
+          echo "asc_key_path=$key_dir/AuthKey_${ASC_KEY_ID}.p8" >> "$GITHUB_OUTPUT"
           echo "configured=true" >> "$GITHUB_OUTPUT"
-        env:
-          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
-          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
 
       - name: Archive signed iOS release app
         if: steps.signing.outputs.configured == 'true'
+        env:
+          ASC_KEY_PATH: ${{ steps.signing.outputs.asc_key_path }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
+          set -o pipefail
           xcodebuild \
             -workspace vrtxreactnativeexample.xcworkspace \
             -scheme vrtxreactnativeexample \
@@ -91,7 +158,12 @@ jobs:
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/vrtx-react-native-example.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             COMPILER_INDEX_STORE_ENABLE=NO \
             SWIFT_STRICT_CONCURRENCY=minimal \
+            DEVELOPMENT_TEAM=LXMJWVKH6P \
             archive
         working-directory: example/ios
