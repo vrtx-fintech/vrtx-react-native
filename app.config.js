@@ -9,18 +9,4 @@
 //   cd example
 //   npx expo run:ios
 //
-module.exports = () => {
-  throw new Error(
-    [
-      '',
-      'vrtx-react-native is a library, not a runnable Expo app.',
-      'Run Expo commands from the ./example directory instead:',
-      '',
-      '  cd example',
-      '  npx expo run:ios       # iOS simulator',
-      '  npx expo run:android   # Android emulator',
-      '  npx expo start         # JS-only dev server',
-      '',
-    ].join('\n'),
-  );
-};
+module.exports = ()
