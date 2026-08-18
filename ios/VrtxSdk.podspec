@@ -23,18 +23,17 @@ Pod::Spec.new do |s|
   # trunk (https://github.com/vrtx-fintech/vrtx-ios). CocoaPods downloads and
   # embeds it automatically, mirroring how Android pulls `vrtx-android` from
   # Maven Central. Keep this version aligned with the VRTX pod release.
-  # 0.1.4 is the first pod release that is actually installable. Earlier
-  # versions vendored only VRTX.xcframework and declared no dependencies, so
-  # neither DeviceKit nor TalsecRuntime was available — and VRTX ships only a
-  # .swiftinterface, so `import VRTX` recompiles it and fails on its own
-  # `import TalsecRuntime`. Talsec publishes no pod, so there was no way for a
-  # consumer to supply it. 0.1.4 vendors TalsecRuntime.xcframework itself.
-  s.dependency 'VRTX', '0.1.4'
-  # VRTX 0.1.4 also declares DeviceKit transitively; it stays declared here,
-  # pinned to the exact version the xcframework is compiled against, because a
-  # module built by a different DeviceKit is a build error, not a soft
-  # incompatibility.
-  s.dependency 'DeviceKit', '5.7.0'
+  # 0.1.6 exposes the environment case as `production`, matching the Android
+  # SDK and what VrtxSdkModule.swift already passes. It also drops DeviceKit
+  # from the framework's public .swiftinterface, so consumers no longer need
+  # that module to compile against VRTX — which is why no DeviceKit dependency
+  # is declared here any more.
+  #
+  # Do not go below 0.1.6: earlier pods either could not resolve TalsecRuntime
+  # at all, or leaked DeviceKit into the ABI and failed with "cannot load
+  # underlying module for 'DeviceKit'" on any toolchain that had to rebuild the
+  # interface.
+  s.dependency 'VRTX', '0.1.6'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
