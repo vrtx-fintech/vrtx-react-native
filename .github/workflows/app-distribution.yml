@@ -142,10 +142,25 @@ jobs:
         env:
           FIREBASE_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
         run: |
-          test -n "$FIREBASE_KEY"
+          set -euo pipefail
+          if [ -z "$FIREBASE_KEY" ]; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT_KEY is not set."
+            exit 1
+          fi
           key_file=$(mktemp)
           chmod 600 "$key_file"
-          printf '%s' "$FIREBASE_KEY" > "$key_file"
+          if printf '%s' "$FIREBASE_KEY" | jq -e . >/dev/null 2>&1; then
+            printf '%s' "$FIREBASE_KEY" > "$key_file"
+          else
+            printf '%s' "$FIREBASE_KEY" | base64 --decode > "$key_file" 2>/dev/null || {
+              echo "::error::FIREBASE_SERVICE_ACCOUNT_KEY must be service-account JSON or base64-encoded service-account JSON."
+              exit 1
+            }
+          fi
+          if ! jq -e '.type == "service_account" and (.client_email | type == "string") and (.private_key | type == "string")' "$key_file" >/dev/null; then
+            echo "::error::FIREBASE_SERVICE_ACCOUNT_KEY is not a valid service-account credential."
+            exit 1
+          fi
           echo "GOOGLE_APPLICATION_CREDENTIALS=$key_file" >> "$GITHUB_ENV"
 
       - name: Distribute APK to Firebase
@@ -160,7 +175,7 @@ jobs:
           testers_file=$(mktemp)
           printf '%s' "$RELEASE_NOTES" > "$notes_file"
           printf '%s' "$TESTERS" > "$testers_file"
-          firebase appdistribution:distribute app/build/outputs/apk/release/app-release.apk \
+          GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" firebase appdistribution:distribute app/build/outputs/apk/release/app-release.apk \
             --app "$APP_ID" \
             --release-notes-file "$notes_file" \
             --testers-file "$testers_file"
