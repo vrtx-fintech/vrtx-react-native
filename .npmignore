@@ -26,3 +26,5 @@ __tests__
 /example/
 # Defensive: the VRTX binary is delivered by the VRTX CocoaPods pod, never bundled here.
 /ios/Frameworks/
+/scripts/
+Makefile

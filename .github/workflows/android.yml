@@ -32,14 +32,10 @@ jobs:
         run: npx expo prebuild --platform android --no-install
         working-directory: example
 
-      # Expo regenerates these Gradle files during prebuild. Configure the
-      # generated app with the FreeRASP repository and the dependency pins
-      # required by its AGP 8.12 toolchain.
+      # Expo regenerates these Gradle files during prebuild. Apply the same
+      # Vrtx/Talsec configuration used by local Android testing.
       - name: Configure FreeRASP Android dependencies
-        run: |
-          printf '%s\n' '' 'allprojects {' '  repositories {' "    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }" '  }' '  configurations.configureEach {' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")' '    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-reflect:2.1.20")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0")' '    resolutionStrategy.force("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0")' '    resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-serialization-")) { useVersion("1.8.1") } }' '    resolutionStrategy.eachDependency { if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-datetime")) { useVersion("0.7.1") } }' '  }' '}' >> build.gradle
-          printf '%s\n' '' 'android {' '  defaultConfig {' '    manifestPlaceholders.vrtxPackageName = applicationId' '    manifestPlaceholders.vrtxCertHash = System.getenv("VRTX_CERT_HASH") ?: ""' '  }' '}' >> app/build.gradle
-        working-directory: example/android
+        run: bash scripts/android.sh --configure-only example/android
 
       - name: Set up Java
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
