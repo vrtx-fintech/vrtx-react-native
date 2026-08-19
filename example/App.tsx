@@ -9,6 +9,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import {
@@ -92,11 +93,15 @@ export default function App() {
   const [arabicFont, setArabicFont] = useState<ArabicFont>(
     arabicFonts[0].value,
   );
-  const [openDropdown, setOpenDropdown] = useState<'english' | 'arabic' | null>(
-    null,
+  const [mode, setMode] = useState<Mode>(Mode.LIGHT);
+  const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
+  const [externalReference, setExternalReference] = useState(
+    generateExternalReference(),
   );
   const isArabic = language === Language.Arabic;
+  const isDark = mode === Mode.DARK;
   const activeFontFamily = isArabic ? arabicFont : englishFont;
+  const activeFonts = isArabic ? arabicFonts : englishFonts;
 
   useEffect(() => {
     const successSub = onSuccess(() => {
@@ -129,9 +134,9 @@ export default function App() {
         clientSecret: VRTX_CLIENT_SECRET,
         environment: VRTX_ENVIRONMENT,
         language,
-        mode: Mode.LIGHT,
-        fontFamily: language === Language.English ? englishFont : arabicFont,
-        externalReference: generateExternalReference(),
+        mode,
+        fontFamily: activeFontFamily,
+        externalReference,
       });
       console.log('Vrtx SDK launched successfully');
     } catch (error: any) {
@@ -141,19 +146,29 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+    <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={isDark ? '#111217' : '#ffffff'}
+      />
 
       <View style={styles.hero}>
-        <View style={styles.preview} />
+        <View style={[styles.preview, isDark && styles.previewDark]} />
 
         <View style={styles.copy}>
-          <Text style={[styles.title, { fontFamily: activeFontFamily }]}>
+          <Text
+            style={[
+              styles.title,
+              isDark && styles.titleDark,
+              { fontFamily: activeFontFamily },
+            ]}
+          >
             {isArabic ? 'مرحبًا بك في vrtx Pay' : 'Welcome to vrtx Pay'}
           </Text>
           <Text
             style={[
               styles.subtitle,
+              isDark && styles.subtitleDark,
               {
                 fontFamily: activeFontFamily,
                 textAlign: isArabic ? 'right' : 'center',
@@ -167,9 +182,14 @@ export default function App() {
         </View>
       </View>
 
-      <View style={styles.controls}>
-        <ControlRow isRtl={isArabic} label={isArabic ? 'اللغة' : 'Language'}>
+      <View style={[styles.controls, isDark && styles.controlsDark]}>
+        <ControlRow
+          isDark={isDark}
+          isRtl={isArabic}
+          label={isArabic ? 'اللغة' : 'Language'}
+        >
           <SegmentedControl
+            isDark={isDark}
             leftLabel="EN"
             rightLabel="AR"
             rightActive={language === Language.Arabic}
@@ -184,39 +204,60 @@ export default function App() {
         </ControlRow>
 
         <ControlRow
+          isDark={isDark}
           isRtl={isArabic}
-          label={isArabic ? 'خط الإنجليزية' : 'English Font'}
+          label={isArabic ? 'الخط' : 'Font'}
         >
           <Dropdown
-            isOpen={openDropdown === 'english'}
-            onToggle={() =>
-              setOpenDropdown(openDropdown === 'english' ? null : 'english')
-            }
+            isDark={isDark}
+            isOpen={isFontDropdownOpen}
+            onToggle={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
             onSelect={(value) => {
-              setEnglishFont(value as EnglishFont);
-              setOpenDropdown(null);
+              if (isArabic) {
+                setArabicFont(value as ArabicFont);
+              } else {
+                setEnglishFont(value as EnglishFont);
+              }
+              setIsFontDropdownOpen(false);
             }}
-            options={englishFonts}
-            value={englishFont}
+            options={activeFonts}
+            value={activeFontFamily}
           />
         </ControlRow>
 
         <ControlRow
+          isDark={isDark}
           isRtl={isArabic}
-          label={isArabic ? 'خط العربية' : 'Arabic Font'}
+          label={isArabic ? 'المظهر' : 'Mode'}
+        >
+          <SegmentedControl
+            isDark={isDark}
+            leftLabel={isArabic ? 'فاتح' : 'Light'}
+            rightLabel={isArabic ? 'داكن' : 'Dark'}
+            rightActive={mode === Mode.DARK}
+            onPress={() =>
+              setMode(mode === Mode.LIGHT ? Mode.DARK : Mode.LIGHT)
+            }
+          />
+        </ControlRow>
+
+        <ControlRow
+          isDark={isDark}
+          isRtl={isArabic}
+          label={isArabic ? 'مرجع خارجي' : 'External ref'}
           last
         >
-          <Dropdown
-            isOpen={openDropdown === 'arabic'}
-            onToggle={() =>
-              setOpenDropdown(openDropdown === 'arabic' ? null : 'arabic')
-            }
-            onSelect={(value) => {
-              setArabicFont(value as ArabicFont);
-              setOpenDropdown(null);
-            }}
-            options={arabicFonts}
-            value={arabicFont}
+          <TextInput
+            accessibilityLabel="External reference"
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChangeText={setExternalReference}
+            placeholder="Reference"
+            style={[
+              styles.externalReferenceInput,
+              isDark && styles.externalReferenceInputDark,
+            ]}
+            value={externalReference}
           />
         </ControlRow>
       </View>
@@ -226,11 +267,16 @@ export default function App() {
         onPress={handlePress}
         style={({ pressed }) => [
           styles.primaryButton,
+          isDark && styles.primaryButtonDark,
           pressed && styles.primaryButtonPressed,
         ]}
       >
         <Text
-          style={[styles.primaryButtonText, { fontFamily: activeFontFamily }]}
+          style={[
+            styles.primaryButtonText,
+            isDark && styles.primaryButtonTextDark,
+            { fontFamily: activeFontFamily },
+          ]}
         >
           {isArabic ? 'ابدأ الآن' : 'Get started'}
         </Text>
@@ -241,21 +287,35 @@ export default function App() {
 
 type ControlRowProps = {
   children: React.ReactNode;
+  isDark: boolean;
   isRtl: boolean;
   label: string;
   last?: boolean;
 };
 
-function ControlRow({ children, isRtl, label, last = false }: ControlRowProps) {
+function ControlRow({
+  children,
+  isDark,
+  isRtl,
+  label,
+  last = false,
+}: ControlRowProps) {
   return (
     <View
       style={[
         styles.controlRow,
+        isDark && styles.controlRowDark,
         isRtl && styles.controlRowRtl,
         last && styles.controlRowLast,
       ]}
     >
-      <Text style={[styles.controlLabel, isRtl && styles.textRtl]}>
+      <Text
+        style={[
+          styles.controlLabel,
+          isDark && styles.controlLabelDark,
+          isRtl && styles.textRtl,
+        ]}
+      >
         {label}
       </Text>
       {children}
@@ -264,6 +324,7 @@ function ControlRow({ children, isRtl, label, last = false }: ControlRowProps) {
 }
 
 type SegmentedControlProps = {
+  isDark: boolean;
   leftLabel: string;
   onPress: () => void;
   rightActive: boolean;
@@ -271,6 +332,7 @@ type SegmentedControlProps = {
 };
 
 function SegmentedControl({
+  isDark,
   leftLabel,
   onPress,
   rightActive,
@@ -279,17 +341,28 @@ function SegmentedControl({
   return (
     <View style={styles.segmentGroup}>
       <Text
-        style={[styles.segmentLabel, !rightActive && styles.segmentLabelActive]}
+        style={[
+          styles.segmentLabel,
+          isDark && styles.segmentLabelDark,
+          !rightActive && styles.segmentLabelActive,
+        ]}
       >
         {leftLabel}
       </Text>
-      <Pressable onPress={onPress} style={styles.switchTrack}>
+      <Pressable
+        onPress={onPress}
+        style={[styles.switchTrack, isDark && styles.switchTrackDark]}
+      >
         <View
           style={[styles.switchThumb, rightActive && styles.switchThumbRight]}
         />
       </Pressable>
       <Text
-        style={[styles.segmentLabel, rightActive && styles.segmentLabelActive]}
+        style={[
+          styles.segmentLabel,
+          isDark && styles.segmentLabelDark,
+          rightActive && styles.segmentLabelActive,
+        ]}
       >
         {rightLabel}
       </Text>
@@ -303,6 +376,7 @@ type DropdownOption = {
 };
 
 type DropdownProps = {
+  isDark: boolean;
   isOpen: boolean;
   onSelect: (value: string) => void;
   onToggle: () => void;
@@ -311,6 +385,7 @@ type DropdownProps = {
 };
 
 function Dropdown({
+  isDark,
   isOpen,
   onSelect,
   onToggle,
@@ -342,8 +417,13 @@ function Dropdown({
   return (
     <View style={styles.dropdown}>
       <View ref={triggerRef} collapsable={false}>
-        <Pressable onPress={onToggle} style={styles.dropdownTrigger}>
-          <Text style={styles.selectValue}>{selected?.label}</Text>
+        <Pressable
+          onPress={onToggle}
+          style={[styles.dropdownTrigger, isDark && styles.dropdownTriggerDark]}
+        >
+          <Text style={[styles.selectValue, isDark && styles.selectValueDark]}>
+            {selected?.label}
+          </Text>
           <Text style={styles.chevron}>{isOpen ? '▴' : '▾'}</Text>
         </Pressable>
       </View>
@@ -399,6 +479,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 18,
   },
+  containerDark: {
+    backgroundColor: '#111217',
+  },
   hero: {
     flex: 1,
     alignItems: 'center',
@@ -412,6 +495,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f8',
     marginBottom: 52,
   },
+  previewDark: {
+    backgroundColor: '#25272f',
+  },
   copy: {
     alignItems: 'center',
   },
@@ -421,11 +507,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 34,
   },
+  titleDark: {
+    color: '#ffffff',
+  },
   subtitle: {
     color: '#8b8d95',
     fontSize: 15,
     textAlign: 'center',
     marginTop: 10,
+  },
+  subtitleDark: {
+    color: '#b8bac3',
   },
   primaryButton: {
     alignItems: 'center',
@@ -436,6 +528,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     transform: [{ translateY: -60 }],
   },
+  primaryButtonDark: {
+    backgroundColor: '#ffffff',
+  },
   primaryButtonPressed: {
     opacity: 0.82,
   },
@@ -444,11 +539,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  primaryButtonTextDark: {
+    color: '#111217',
+  },
   controls: {
     backgroundColor: '#f7f7fb',
     borderRadius: 20,
     marginBottom: 76,
     paddingHorizontal: 18,
+  },
+  controlsDark: {
+    backgroundColor: '#1c1e25',
   },
   controlRow: {
     minHeight: 64,
@@ -457,6 +558,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  controlRowDark: {
+    borderBottomColor: '#343741',
   },
   controlRowRtl: {
     flexDirection: 'row-reverse',
@@ -468,6 +572,9 @@ const styles = StyleSheet.create({
     color: '#111217',
     fontSize: 16,
     fontWeight: '600',
+  },
+  controlLabelDark: {
+    color: '#ffffff',
   },
   textRtl: {
     textAlign: 'right',
@@ -481,6 +588,9 @@ const styles = StyleSheet.create({
     color: '#7b7d87',
     fontSize: 15,
   },
+  segmentLabelDark: {
+    color: '#b8bac3',
+  },
   segmentLabelActive: {
     color: '#111217',
     fontWeight: '600',
@@ -492,6 +602,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e1e2e7',
     padding: 4,
     justifyContent: 'center',
+  },
+  switchTrackDark: {
+    backgroundColor: '#343741',
   },
   switchThumb: {
     width: 24,
@@ -506,6 +619,9 @@ const styles = StyleSheet.create({
     color: '#111217',
     fontSize: 15,
   },
+  selectValueDark: {
+    color: '#ffffff',
+  },
   dropdown: {
     alignItems: 'flex-end',
   },
@@ -517,6 +633,23 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#ffffff',
     paddingHorizontal: 12,
+  },
+  dropdownTriggerDark: {
+    backgroundColor: '#292c35',
+  },
+  externalReferenceInput: {
+    width: 196,
+    minHeight: 36,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    color: '#111217',
+    fontSize: 14,
+    paddingHorizontal: 12,
+    textAlign: 'right',
+  },
+  externalReferenceInputDark: {
+    backgroundColor: '#292c35',
+    color: '#ffffff',
   },
   chevron: {
     color: '#7b7d87',
