@@ -87,18 +87,18 @@ jobs:
           if [ ! -f "${ANDROID_SDK_ROOT}/licenses/android-sdk-license" ]; then
             yes | sdkmanager --licenses >/dev/null || true
           fi
-          sdkmanager "platforms;android-37" "build-tools;37.0.0"
+          sdkmanager "platforms;android-36" "build-tools;36.1.0"
 
       - name: Install example dependencies
         run: npm ci
         working-directory: example
 
-      - name: Set release version
+      - name: Set release version and CI Android SDK
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
           VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
         run: |
-          node -e 'const fs=require("fs"); const p="app.json"; const a=JSON.parse(fs.readFileSync(p)); a.expo.version=process.env.VERSION; a.expo.android.versionCode=Number(process.env.VERSION_CODE); fs.writeFileSync(p, `${JSON.stringify(a, null, 2)}\n`);'
+          node -e 'const fs=require("fs"); const p="app.json"; const a=JSON.parse(fs.readFileSync(p)); a.expo.version=process.env.VERSION; a.expo.android.versionCode=Number(process.env.VERSION_CODE); const plugin=a.expo.plugins.find((entry)=>Array.isArray(entry)&&entry[0]==="expo-build-properties"); if (!plugin) throw new Error("expo-build-properties configuration is missing"); plugin[1].android.compileSdkVersion=36; fs.writeFileSync(p, `${JSON.stringify(a, null, 2)}\n`);'
         working-directory: example
 
       - name: Generate Android project
