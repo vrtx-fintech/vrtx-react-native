@@ -38,7 +38,9 @@ jobs:
 
       - id: version
         env:
-          BUMP: ${{ inputs.bump || 'patch' }}
+          # Temporary PR test default. Restore the workflow_dispatch input
+          # when the pull_request trigger is removed.
+          BUMP: patch
         run: |
           latest=$(git tag --list 'demo-*' --sort=-v:refname | grep -E '^demo-[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
           current=${latest#demo-}
@@ -161,7 +163,7 @@ jobs:
         shell: bash
         env:
           APP_ID: ${{ secrets.SANDBOX_FIREBASE_APP_ID }}
-          RELEASE_NOTES: ${{ inputs.release_notes || format('Pull request #{0} test build', github.event.pull_request.number) }}
+          RELEASE_NOTES: Pull request test build
           TESTERS: ${{ secrets.FIREBASE_TESTERS }}
         run: |
           test -n "$APP_ID" && test -n "$TESTERS"
@@ -216,7 +218,7 @@ jobs:
           WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           APPETIZE_URL: ${{ steps.appetize.outputs.url }}
           APK_ARTIFACT_URL: ${{ steps.apk-artifact.outputs.artifact-url }}
-          NOTES: ${{ inputs.release_notes || format('Pull request #{0} test build', github.event.pull_request.number) }}
+          NOTES: Pull request test build
           REPO: ${{ github.repository }}
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
