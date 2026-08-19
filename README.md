@@ -77,27 +77,8 @@ The React Native API mirrors the Android SDK public enums:
 `externalReference` may be passed as a string when your app needs to attach its own reference to the SDK session.
 
 > **Use the exported enums, not raw strings.** The values above are sent to the
-> native SDKs as plain strings, and both bridges fall back to a default rather
-> than raising on a value they do not recognise: an unknown `environment`
-> silently runs against **sandbox**, an unknown `language` against English, an
-> unknown `mode` against light. TypeScript callers are protected by the union
-> types; JavaScript callers are not. `npm test` enforces that every exported
-> enum value is one the native bridges actually match.
-
-## Testing
-
-```bash
-npm test
-```
-
-The suite is a contract check between the JavaScript enums and the native
-bridges. Nothing in the type system connects `Environment.Production` to the
-`"PRODUCTION"` string that `VrtxSdkModule.swift` and `VrtxSdkModule.kt` compare
-against, and — because the iOS job's only Swift compilation is gated behind
-signing secrets — nothing in CI compiles those files either. The tests read the
-native sources directly and fail if an enum value, a public union type, or this
-README drifts from what the bridges accept. They need no simulator, emulator or
-signing, so they run on every pull request.
+> native SDKs as plain strings. TypeScript callers are protected by the union
+> types; JavaScript callers should use the exported enums as well.
 
 ## Events
 
@@ -159,24 +140,6 @@ value to avoid a manifest-merger conflict. For Expo, add this to `app.json`:
 }
 ```
 
-### Android CI secrets
-
-For a release build in GitHub Actions, store the signing material as repository
-secrets. Never commit a keystore or its passwords.
-
-| Secret                      | Value                                             |
-| --------------------------- | ------------------------------------------------- |
-| `VRTX_CERT_HASH`            | Base64 SHA-256 hash used for `vrtxCertHash` above |
-| `ANDROID_KEYSTORE_BASE64`   | Base64-encoded release `.jks`/`.p12` keystore     |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password                                 |
-| `ANDROID_KEY_ALIAS`         | Release key alias                                 |
-| `ANDROID_KEY_PASSWORD`      | Release key password                              |
-
-Decode `ANDROID_KEYSTORE_BASE64` in CI, configure the Android `release`
-`signingConfig` with the remaining secrets, and build `assembleRelease`. The
-certificate used by that signing configuration must be the one used to derive
-`VRTX_CERT_HASH`.
-
 ## iOS TestFlight distribution
 
 No FreeRASP certificate hash or additional VRTX secret is required for iOS.
@@ -197,26 +160,6 @@ For a TestFlight build, consumers should:
 
 Use the final bundle identifier before issuing production credentials. Contact
 Vrtx support if the identifier or signing setup changes after onboarding.
-
-## Releasing
-
-Releases are published by CI only:
-
-**Actions → Release → Run workflow**, choosing `patch`, `minor` or `major`.
-
-The workflow bumps the version, runs lint, format and build, publishes with
-[npm provenance](https://docs.npmjs.com/generating-provenance-statements), tags
-the commit and creates the GitHub release. Publishing from a workstation skips
-every one of those steps and produces a package with no provenance attestation —
-`0.1.86` and `0.1.87` were both published that way, and both shipped pinning a
-`VRTX` version that could not be installed while `main` was correct.
-
-After the release lands, point the example at it so CI exercises the real
-published artifact:
-
-```bash
-cd example && npm pkg set dependencies.vrtx-react-native="^<new version>" && npm install
-```
 
 ## Support
 
