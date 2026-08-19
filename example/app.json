@@ -33,7 +33,12 @@
           "android": {
             "compileSdkVersion": 37,
             "minSdkVersion": 29,
-            "kotlinVersion": "2.1.20"
+            "kotlinVersion": "2.1.20",
+            "buildArchs": [
+              "arm64-v8a"
+            ],
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
           },
           "ios": {
             "deploymentTarget": "16.4"

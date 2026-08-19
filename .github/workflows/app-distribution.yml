@@ -207,15 +207,6 @@ jobs:
           echo "url=${public_url}" >> "${GITHUB_OUTPUT}"
           echo "Appetize preview: ${public_url}"
 
-      - name: Tag demo release
-        env:
-          VERSION: ${{ needs.prepare.outputs.version }}
-        run: |
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git tag "demo-$VERSION"
-          git push origin "demo-$VERSION"
-
       - name: Notify Slack
         shell: bash
         env:
@@ -223,7 +214,6 @@ jobs:
           APPETIZE_URL: ${{ steps.appetize.outputs.url }}
           APK_ARTIFACT_URL: ${{ steps.apk-artifact.outputs.artifact-url }}
           NOTES: Pull request test build
-          REPO: ${{ github.repository }}
           VERSION: ${{ needs.prepare.outputs.version }}
           CLIENT_ID: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_ID }}
         run: |
@@ -232,10 +222,8 @@ jobs:
             echo "::warning::SLACK_WEBHOOK_URL is not set; skipping release announcement."
             exit 0
           fi
-          tag="demo-${VERSION}"
           title="React Native Demo App ${VERSION} Available (sandbox · ${CLIENT_ID})"
-          tag_url="https://github.com/${REPO}/tree/${tag}"
-          context="Environment: sandbox · Client ID: ${CLIENT_ID} · <${tag_url}|${tag}> · <${APPETIZE_URL}|Appetize preview>"
+          context="Environment: sandbox · Client ID: ${CLIENT_ID} · <${APPETIZE_URL}|Appetize preview>"
           if [ -n "${APK_ARTIFACT_URL}" ]; then
             context="${context} · <${APK_ARTIFACT_URL}|APK (expires in 7d)>"
           fi
