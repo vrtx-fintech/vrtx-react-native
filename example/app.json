@@ -23,7 +23,8 @@
       "predictiveBackGestureEnabled": false,
       "package": "sa.vrtx.reactnative.example",
       "minSdkVersion": 29,
-      "allowBackup": false
+      "allowBackup": false,
+      "usesCleartextTraffic": false
     },
     "plugins": [
       [
