@@ -43,8 +43,12 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Set up Gradle
+      - name: Set up Gradle cache
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb #v6.3.0
+        with:
+          # Pull requests reuse the cache populated by main; only main writes
+          # new cache entries after a successful build.
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -55,7 +59,7 @@ jobs:
         working-directory: example/android
 
       - name: Build Android release app
-        run: ./gradlew app:assembleRelease --refresh-dependencies
+        run: ./gradlew app:assembleRelease --build-cache
         working-directory: example/android
         env:
           NODE_ENV: production
