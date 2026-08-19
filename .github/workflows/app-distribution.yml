@@ -175,7 +175,7 @@ jobs:
           testers_file=$(mktemp)
           printf '%s' "$RELEASE_NOTES" > "$notes_file"
           printf '%s' "$TESTERS" > "$testers_file"
-          GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" firebase appdistribution:distribute app/build/outputs/apk/release/app-release.apk \
+          GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" firebase appdistribution:distribute example/android/app/build/outputs/apk/release/app-release.apk \
             --app "$APP_ID" \
             --release-notes-file "$notes_file" \
             --testers-file "$testers_file"
@@ -225,6 +225,7 @@ jobs:
           NOTES: Pull request test build
           REPO: ${{ github.repository }}
           VERSION: ${{ needs.prepare.outputs.version }}
+          CLIENT_ID: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_ID }}
         run: |
           set -euo pipefail
           if [ -z "${WEBHOOK}" ]; then
@@ -232,9 +233,9 @@ jobs:
             exit 0
           fi
           tag="demo-${VERSION}"
-          title="React Native Demo App ${VERSION} Available (sandbox)"
+          title="React Native Demo App ${VERSION} Available (sandbox · ${CLIENT_ID})"
           tag_url="https://github.com/${REPO}/tree/${tag}"
-          context="Environment: sandbox · <${tag_url}|${tag}> · <${APPETIZE_URL}|Appetize preview>"
+          context="Environment: sandbox · Client ID: ${CLIENT_ID} · <${tag_url}|${tag}> · <${APPETIZE_URL}|Appetize preview>"
           if [ -n "${APK_ARTIFACT_URL}" ]; then
             context="${context} · <${APK_ARTIFACT_URL}|APK (expires in 7d)>"
           fi
