@@ -38,6 +38,7 @@
             "buildArchs": ["arm64-v8a"],
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
+            "useLegacyPackaging": true,
             "enableBundleCompression": true
           },
           "ios": {
