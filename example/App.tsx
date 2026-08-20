@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -30,21 +31,6 @@ const VRTX_ENVIRONMENT =
 const DROPDOWN_MENU_WIDTH = 196;
 const DROPDOWN_VISIBLE_ROWS = 3;
 const DROPDOWN_ROW_HEIGHT = 40;
-
-const generateExternalReference = () => {
-  const cryptoApi = globalThis.crypto;
-
-  if (typeof cryptoApi?.randomUUID === 'function') {
-    return cryptoApi.randomUUID();
-  }
-
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-    const random = Math.floor(Math.random() * 16);
-    const value = char === 'x' ? random : (random & 0x3) | 0x8;
-
-    return value.toString(16);
-  });
-};
 
 // Font lookup keys differ per platform: Android resolves a JS string
 // against the resource name registered in the expo-font plugin
@@ -95,9 +81,7 @@ export default function App() {
   );
   const [mode, setMode] = useState<Mode>(Mode.LIGHT);
   const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
-  const [externalReference, setExternalReference] = useState(
-    generateExternalReference(),
-  );
+  const [externalReference, setExternalReference] = useState('');
   const isArabic = language === Language.Arabic;
   const isDark = mode === Mode.DARK;
   const activeFontFamily = isArabic ? arabicFont : englishFont;
@@ -146,142 +130,147 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
-      <StatusBar
-        barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={isDark ? '#111217' : '#ffffff'}
-      />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.keyboardAvoidingView}
+    >
+      <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor={isDark ? '#111217' : '#ffffff'}
+        />
 
-      <View style={styles.hero}>
-        <View style={[styles.preview, isDark && styles.previewDark]} />
+        <View style={styles.hero}>
+          <View style={[styles.preview, isDark && styles.previewDark]} />
 
-        <View style={styles.copy}>
+          <View style={styles.copy}>
+            <Text
+              style={[
+                styles.title,
+                isDark && styles.titleDark,
+                { fontFamily: activeFontFamily },
+              ]}
+            >
+              {isArabic ? 'مرحبًا بك في vrtx Pay' : 'Welcome to vrtx Pay'}
+            </Text>
+            <Text
+              style={[
+                styles.subtitle,
+                isDark && styles.subtitleDark,
+                {
+                  fontFamily: activeFontFamily,
+                  textAlign: isArabic ? 'right' : 'center',
+                },
+              ]}
+            >
+              {isArabic
+                ? 'محفظة React Native للمدفوعات اليومية'
+                : 'React Native wallet for everyday payments'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={[styles.controls, isDark && styles.controlsDark]}>
+          <ControlRow
+            isDark={isDark}
+            isRtl={isArabic}
+            label={isArabic ? 'اللغة' : 'Language'}
+          >
+            <SegmentedControl
+              isDark={isDark}
+              leftLabel="EN"
+              rightLabel="AR"
+              rightActive={language === Language.Arabic}
+              onPress={() =>
+                setLanguage(
+                  language === Language.English
+                    ? Language.Arabic
+                    : Language.English,
+                )
+              }
+            />
+          </ControlRow>
+
+          <ControlRow
+            isDark={isDark}
+            isRtl={isArabic}
+            label={isArabic ? 'الخط' : 'Font'}
+          >
+            <Dropdown
+              isDark={isDark}
+              isOpen={isFontDropdownOpen}
+              onToggle={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
+              onSelect={(value) => {
+                if (isArabic) {
+                  setArabicFont(value as ArabicFont);
+                } else {
+                  setEnglishFont(value as EnglishFont);
+                }
+                setIsFontDropdownOpen(false);
+              }}
+              options={activeFonts}
+              value={activeFontFamily}
+            />
+          </ControlRow>
+
+          <ControlRow
+            isDark={isDark}
+            isRtl={isArabic}
+            label={isArabic ? 'المظهر' : 'Mode'}
+          >
+            <SegmentedControl
+              isDark={isDark}
+              leftLabel={isArabic ? 'فاتح' : 'Light'}
+              rightLabel={isArabic ? 'داكن' : 'Dark'}
+              rightActive={mode === Mode.DARK}
+              onPress={() =>
+                setMode(mode === Mode.LIGHT ? Mode.DARK : Mode.LIGHT)
+              }
+            />
+          </ControlRow>
+
+          <ControlRow
+            isDark={isDark}
+            isRtl={isArabic}
+            label={isArabic ? 'مرجع خارجي' : 'External ref'}
+            last
+          >
+            <TextInput
+              accessibilityLabel="External reference"
+              autoCapitalize="none"
+              autoCorrect={false}
+              onChangeText={setExternalReference}
+              placeholder="Reference"
+              style={[
+                styles.externalReferenceInput,
+                isDark && styles.externalReferenceInputDark,
+              ]}
+              value={externalReference}
+            />
+          </ControlRow>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={handlePress}
+          style={({ pressed }) => [
+            styles.primaryButton,
+            isDark && styles.primaryButtonDark,
+            pressed && styles.primaryButtonPressed,
+          ]}
+        >
           <Text
             style={[
-              styles.title,
-              isDark && styles.titleDark,
+              styles.primaryButtonText,
+              isDark && styles.primaryButtonTextDark,
               { fontFamily: activeFontFamily },
             ]}
           >
-            {isArabic ? 'مرحبًا بك في vrtx Pay' : 'Welcome to vrtx Pay'}
+            {isArabic ? 'ابدأ الآن' : 'Get started'}
           </Text>
-          <Text
-            style={[
-              styles.subtitle,
-              isDark && styles.subtitleDark,
-              {
-                fontFamily: activeFontFamily,
-                textAlign: isArabic ? 'right' : 'center',
-              },
-            ]}
-          >
-            {isArabic
-              ? 'محفظة React Native للمدفوعات اليومية'
-              : 'React Native wallet for everyday payments'}
-          </Text>
-        </View>
-      </View>
-
-      <View style={[styles.controls, isDark && styles.controlsDark]}>
-        <ControlRow
-          isDark={isDark}
-          isRtl={isArabic}
-          label={isArabic ? 'اللغة' : 'Language'}
-        >
-          <SegmentedControl
-            isDark={isDark}
-            leftLabel="EN"
-            rightLabel="AR"
-            rightActive={language === Language.Arabic}
-            onPress={() =>
-              setLanguage(
-                language === Language.English
-                  ? Language.Arabic
-                  : Language.English,
-              )
-            }
-          />
-        </ControlRow>
-
-        <ControlRow
-          isDark={isDark}
-          isRtl={isArabic}
-          label={isArabic ? 'الخط' : 'Font'}
-        >
-          <Dropdown
-            isDark={isDark}
-            isOpen={isFontDropdownOpen}
-            onToggle={() => setIsFontDropdownOpen(!isFontDropdownOpen)}
-            onSelect={(value) => {
-              if (isArabic) {
-                setArabicFont(value as ArabicFont);
-              } else {
-                setEnglishFont(value as EnglishFont);
-              }
-              setIsFontDropdownOpen(false);
-            }}
-            options={activeFonts}
-            value={activeFontFamily}
-          />
-        </ControlRow>
-
-        <ControlRow
-          isDark={isDark}
-          isRtl={isArabic}
-          label={isArabic ? 'المظهر' : 'Mode'}
-        >
-          <SegmentedControl
-            isDark={isDark}
-            leftLabel={isArabic ? 'فاتح' : 'Light'}
-            rightLabel={isArabic ? 'داكن' : 'Dark'}
-            rightActive={mode === Mode.DARK}
-            onPress={() =>
-              setMode(mode === Mode.LIGHT ? Mode.DARK : Mode.LIGHT)
-            }
-          />
-        </ControlRow>
-
-        <ControlRow
-          isDark={isDark}
-          isRtl={isArabic}
-          label={isArabic ? 'مرجع خارجي' : 'External ref'}
-          last
-        >
-          <TextInput
-            accessibilityLabel="External reference"
-            autoCapitalize="none"
-            autoCorrect={false}
-            onChangeText={setExternalReference}
-            placeholder="Reference"
-            style={[
-              styles.externalReferenceInput,
-              isDark && styles.externalReferenceInputDark,
-            ]}
-            value={externalReference}
-          />
-        </ControlRow>
-      </View>
-
-      <Pressable
-        accessibilityRole="button"
-        onPress={handlePress}
-        style={({ pressed }) => [
-          styles.primaryButton,
-          isDark && styles.primaryButtonDark,
-          pressed && styles.primaryButtonPressed,
-        ]}
-      >
-        <Text
-          style={[
-            styles.primaryButtonText,
-            isDark && styles.primaryButtonTextDark,
-            { fontFamily: activeFontFamily },
-          ]}
-        >
-          {isArabic ? 'ابدأ الآن' : 'Get started'}
-        </Text>
-      </Pressable>
-    </SafeAreaView>
+        </Pressable>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -473,6 +462,9 @@ function Dropdown({
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
