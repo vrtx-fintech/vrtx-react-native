@@ -18,8 +18,8 @@ version = '0.1.0'
 // exported strict constraint on the host application's dependency graph.
 configurations.configureEach {
   resolutionStrategy {
-    force 'org.jetbrains.kotlin:kotlin-stdlib:2.1.20'
-    force 'org.jetbrains.kotlin:kotlin-reflect:2.1.20'
+    force 'org.jetbrains.kotlin:kotlin-stdlib:2.4.10'
+    force 'org.jetbrains.kotlin:kotlin-reflect:2.4.10'
     force 'androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0'
     force 'androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0'
     eachDependency {
