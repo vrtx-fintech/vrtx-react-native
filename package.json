@@ -54,7 +54,7 @@
     "expo-module-scripts": "^56.0.3",
     "oxfmt": "^0.65.0",
     "oxlint": "^1.68.0",
-    "react-native": "0.87.1"
+    "react-native": "0.86.0"
   },
   "peerDependencies": {
     "expo": ">=52.0.0",
