@@ -1,6 +1,26 @@
 import ExpoModulesCore
 import VRTX
 
+/// Carries the SDK's error message through to JavaScript.
+///
+/// `Promise.reject(_ code:_ description:)` cannot: it builds a base
+/// `ExpoModulesCore.Exception`, which assigns `description` but leaves `reason`
+/// at its default literal `"undefined reason"` — and `reason` is what reaches
+/// JS. A caller therefore saw `VRX_ERROR: undefined reason` instead of why the
+/// SDK actually failed. Subclassing `GenericException` and overriding `reason`
+/// is the documented way to surface a message.
+///
+/// Android has always been correct here: `CodedException("VRX_ERROR", message,
+/// null)` passes the message through, and falls back when it is absent. This
+/// keeps the two platforms consistent.
+internal final class VrtxException: GenericException<String> {
+  /// Mirrors Android's fallback so neither platform can surface a blank error.
+  static let unknownReason = "Unknown error"
+
+  override var code: String { "VRX_ERROR" }
+  override var reason: String { param }
+}
+
 public class VrtxSdkModule: Module {
   public func definition() -> ModuleDefinition {
     Name("VrtxSdk")
@@ -48,8 +68,8 @@ public class VrtxSdkModule: Module {
             self.sendEvent("onSuccess")
           },
           onError: { error in
-            let message = error.message
-            promise.reject("VRX_ERROR", message)
+            let message = error.message.isEmpty ? VrtxException.unknownReason : error.message
+            promise.reject(VrtxException(message))
             self.sendEvent("onError", [
               "code": "VRX_ERROR",
               "message": message
