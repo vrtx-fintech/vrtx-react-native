@@ -138,3 +138,27 @@ describe.each(CONTRACTS)('$name', ({ name, union, fallback }: EnumContract) => {
     }
   });
 });
+
+describe('error propagation', () => {
+  // ExpoModulesCore's `Promise.reject(_ code:_ description:)` builds a base
+  // `Exception`: it assigns `description` but leaves `reason` at its default
+  // literal "undefined reason", and `reason` is what reaches JavaScript. A
+  // caller saw `VRX_ERROR: undefined reason` instead of why the SDK failed.
+  // Nothing in CI compiles the Swift bridge, so this guards the source.
+  it('iOS does not use the overload that drops the message', () => {
+    expect(swiftBridge).not.toMatch(/promise\.reject\(\s*"[^"]+"\s*,/);
+  });
+
+  it('iOS rejects with an Exception that surfaces a reason', () => {
+    expect(swiftBridge).toMatch(/override var reason: String/);
+    expect(swiftBridge).toMatch(/promise\.reject\(VrtxException\(/);
+  });
+
+  it.each([
+    ['iOS', () => swiftBridge],
+    ['Android', () => kotlinBridge],
+  ])('%s falls back rather than surfacing a blank message', (_platform, source) => {
+    // Android: `error.message ?: "Unknown error"`, iOS: `.isEmpty ? ... : ...`
+    expect(source()).toMatch(/isEmpty \?|\?: "Unknown error"/);
+  });
+});
