@@ -13,7 +13,7 @@
   "dependencies": {
     "babel-preset-expo": "~57.0.11",
     "expo": "^57.0.21",
-    "expo-build-properties": "~57.0.17",
+    "expo-build-properties": "~58.0.3",
     "expo-font": "~57.0.3",
     "expo-splash-screen": "~57.0.8",
     "react": "19.2.8",
