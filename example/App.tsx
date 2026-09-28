@@ -418,11 +418,15 @@ function Dropdown({
     top: number;
   } | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
+  const handleToggle = () => {
+    if (isOpen) {
       setMenuPosition(null);
-      return;
     }
+    onToggle();
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     triggerRef.current?.measureInWindow((x, y, width, height) => {
       setMenuPosition({
@@ -436,7 +440,7 @@ function Dropdown({
     <View style={styles.dropdown}>
       <View ref={triggerRef} collapsable={false}>
         <Pressable
-          onPress={onToggle}
+          onPress={handleToggle}
           style={[styles.dropdownTrigger, isDark && styles.dropdownTriggerDark]}
         >
           <Text style={[styles.selectValue, isDark && styles.selectValueDark]}>
@@ -446,9 +450,9 @@ function Dropdown({
         </Pressable>
       </View>
 
-      <Modal transparent visible={isOpen} onRequestClose={onToggle}>
+      <Modal transparent visible={isOpen} onRequestClose={handleToggle}>
         <View style={styles.dropdownModal}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onToggle} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={handleToggle} />
           {menuPosition && (
             <View style={[styles.dropdownMenu, menuPosition]}>
               <FlatList
