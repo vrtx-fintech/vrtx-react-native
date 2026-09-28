@@ -79,33 +79,6 @@ errorSubscription.remove();
 exitSubscription.remove();
 ```
 
-## Native SDK versions
-
-| Platform | SDK             | Version  |
-| -------- | --------------- | -------- |
-| Android  | `vrtx-android`  | `0.1.9`  |
-| iOS      | `VRTX` CocoaPod | `0.1.15` |
-
-## Requirements
-
-### iOS
-
-| Requirement | Version |
-| ----------- | ------- |
-| iOS         | 15.6+   |
-| Xcode       | 16+     |
-| Swift       | 5.9+    |
-
-### Android
-
-| Requirement           | Version |
-| --------------------- | ------- |
-| `minSdk`              | 29      |
-| `compileSdk`          | 37      |
-| Android Gradle Plugin | 8.13    |
-| Kotlin                | 2.1.x   |
-| JVM target            | 17      |
-
 ## Contract
 
 The React Native API mirrors the Android SDK public enums:
