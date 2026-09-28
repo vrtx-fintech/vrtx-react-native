@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   # at all, or leaked DeviceKit into the ABI and failed with "cannot load
   # underlying module for 'DeviceKit'" on any toolchain that had to rebuild the
   # interface.
-  s.dependency 'VRTX', '0.1.11'
+  s.dependency 'VRTX', '0.1.15'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {

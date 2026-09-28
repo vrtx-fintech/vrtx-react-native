@@ -12,12 +12,15 @@ npm install vrtx-react-native
 
 ```ts
 import {
+  DesignOption,
   Environment,
   Language,
   Mode,
   onError,
+  onExit,
   onSuccess,
   setup,
+  type VrtxThemeOptions,
 } from 'vrtx-react-native';
 
 const successSubscription = onSuccess(() => {
@@ -28,50 +31,66 @@ const errorSubscription = onError((error) => {
   console.error('Vrtx error:', error.code, error.message);
 });
 
+const themeOptions: VrtxThemeOptions = {
+  cardImage: 'https://example.com/card.png',
+  brandLogo: 'https://example.com/logo.png',
+  brandName: 'Atlas Pay',
+  colors: {
+    allBrands: { primary: '#377DFF', buttonLabel: '#FFFFFF' },
+    labels: {
+      primary: '#12233D',
+      secondary: '#60708A',
+      tertiary: '#8B9AB2',
+      quaternary: '#B8C4D6',
+    },
+    fills: {
+      primary: '#EAF3FF',
+      secondary: '#DCEAFF',
+      tertiary: '#C5D9F5',
+      quaternary: '#ADC8EC',
+      vibrant: { secondary: '#4DE3D1' },
+    },
+    backgrounds: { primary: '#F4F8FF', secondary: '#F7FAFF' },
+    backgroundsGradient: { wb01: '#EAF3FF', wb02: '#E7F5F6' },
+    accents: { red: '#E05252', green: '#2E9B67', greenBg: '#E1F5EA' },
+  },
+  spacing: { x0: 0, xxs: 2, xs: 4, sm: 8, md: 12, ml: 16, lg: 20 },
+  radius: { s: 6, sm: 8, md: 12, ml: 16, lg: 20, xl: 24, full: 999, huge: 64 },
+};
+
+const exitSubscription = onExit(() => {
+  console.log('Vrtx screen closed');
+});
+
 await setup({
   clientId: 'your-client-id',
   clientSecret: 'your-client-secret',
   environment: Environment.Sandbox,
   language: Language.English,
   mode: Mode.LIGHT,
+  designOption: DesignOption.OptionC,
+  theme: themeOptions,
   externalReference: 'your-external-reference',
 });
 
 // Remove listeners when they are no longer needed.
 successSubscription.remove();
 errorSubscription.remove();
+exitSubscription.remove();
 ```
-
-## Requirements
-
-### iOS
-
-| Requirement | Version |
-| ----------- | ------- |
-| iOS         | 15.6+   |
-| Xcode       | 16+     |
-| Swift       | 5.9+    |
-
-### Android
-
-| Requirement           | Version |
-| --------------------- | ------- |
-| `minSdk`              | 29      |
-| `compileSdk`          | 37      |
-| Android Gradle Plugin | 8.13    |
-| Kotlin                | 2.1.x   |
-| JVM target            | 17      |
 
 ## Contract
 
 The React Native API mirrors the Android SDK public enums:
 
-| Parameter           | Enum          | Values                                          |
-| ------------------- | ------------- | ----------------------------------------------- |
-| `environment`       | `Environment` | `Environment.Sandbox`, `Environment.Production` |
-| `language`          | `Language`    | `Language.English`, `Language.Arabic`           |
-| `mode`              | `Mode`        | `Mode.LIGHT`, `Mode.DARK`                       |
-| `externalReference` | `string`      | Optional app-provided SDK session reference     |
+| Parameter           | Enum               | Values                                                                 |
+| ------------------- | ------------------ | ---------------------------------------------------------------------- |
+| `environment`       | `Environment`      | `Environment.Sandbox`, `Environment.Production`                        |
+| `language`          | `Language`         | `Language.English`, `Language.Arabic`                                  |
+| `mode`              | `Mode`             | `Mode.LIGHT`, `Mode.DARK`                                              |
+| `externalReference` | `string`           | Optional app-provided SDK session reference                            |
+| `designOption`      | `DesignOption`     | `DesignOption.OptionA`, `DesignOption.OptionB`, `DesignOption.OptionC` |
+| `theme`             | `VrtxThemeOptions` | Optional SDK theme and design-token overrides                          |
 
 `fontFamily` may be passed with the name of a font already bundled in the host app.
 `externalReference` may be passed as a string when your app needs to attach its own reference to the SDK session.
@@ -86,8 +105,13 @@ The React Native API mirrors the Android SDK public enums:
 | ----------- | ---------------------------------------------------- |
 | `onSuccess` | `() => void`                                         |
 | `onError`   | `(error: { code: string; message: string }) => void` |
+| `onExit`    | `() => void`                                         |
 
 Both helpers return a subscription with a `remove()` method.
+
+`onExit` fires when the user closes the native SDK flow. `theme` accepts optional
+brand images as URLs, color groups, spacing values, and corner-radius values;
+all omitted fields retain the native SDK defaults.
 
 ## Android app integrity (freeRASP)
 

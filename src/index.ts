@@ -1,8 +1,12 @@
 // Native module
-import VrtxSdkModule from './VrtxSdkModule';
+import VrtxSdkModule, {
+  type VrtxDesignOption,
+  type VrtxThemeOptions,
+} from './VrtxSdkModule';
 
 // Re-export enums for the public setup contract.
-export { Environment, Language, Mode } from './VrtxSdkModule';
+export { DesignOption, Environment, Language, Mode } from './VrtxSdkModule';
+export type { VrtxDesignOption, VrtxThemeOptions } from './VrtxSdkModule';
 export { default as VrtxSdk } from './VrtxSdkModule';
 
 // Types
@@ -18,6 +22,8 @@ export interface VrtxConfig {
   mode?: VrtxMode;
   fontFamily?: string;
   externalReference?: string;
+  designOption?: VrtxDesignOption;
+  theme?: VrtxThemeOptions;
 }
 
 // Promise-based setup function - resolves when SDK screen opens
@@ -30,6 +36,8 @@ export function setup(
   mode?: VrtxMode,
   fontFamily?: string,
   externalReference?: string,
+  designOption?: VrtxDesignOption,
+  theme?: VrtxThemeOptions,
 ): Promise<void>;
 export async function setup(
   configOrClientId: VrtxConfig | string,
@@ -39,6 +47,8 @@ export async function setup(
   mode?: VrtxMode,
   fontFamily?: string,
   externalReference?: string,
+  designOption: VrtxDesignOption = 'OPTION_C',
+  theme?: VrtxThemeOptions,
 ): Promise<void> {
   const config =
     typeof configOrClientId === 'string'
@@ -50,6 +60,8 @@ export async function setup(
           mode,
           fontFamily,
           externalReference,
+          designOption,
+          theme,
         }
       : configOrClientId;
 
@@ -61,6 +73,8 @@ export async function setup(
     config.mode,
     config.fontFamily,
     config.externalReference,
+    config.designOption ?? 'OPTION_C',
+    config.theme === undefined ? undefined : JSON.stringify(config.theme),
   );
 }
 
@@ -72,6 +86,10 @@ export function addListener(
 export function addListener(
   eventName: 'onError',
   callback: (error: { code: string; message: string }) => void,
+): { remove: () => void };
+export function addListener(
+  eventName: 'onExit',
+  callback: () => void,
 ): { remove: () => void };
 export function addListener(
   eventName: string,
@@ -89,4 +107,8 @@ export function onError(
   callback: (error: { code: string; message: string }) => void,
 ) {
   return addListener('onError', callback);
+}
+
+export function onExit(callback: () => void) {
+  return addListener('onExit', callback);
 }
