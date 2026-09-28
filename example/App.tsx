@@ -17,6 +17,7 @@ import {
   Environment,
   Language,
   Mode,
+  type VrtxThemeOptions,
   onError,
   onSuccess,
   setup,
@@ -71,6 +72,33 @@ const arabicFonts = [
 type EnglishFont = (typeof englishFonts)[number]['value'];
 type ArabicFont = (typeof arabicFonts)[number]['value'];
 
+const themeOptions: VrtxThemeOptions = {
+  cardImage: 'https://example.com/card.png',
+  brandLogo: 'https://example.com/logo.png',
+  brandName: 'Atlas Pay',
+  colors: {
+    allBrands: { primary: '#377DFF', buttonLabel: '#FFFFFF' },
+    labels: {
+      primary: '#12233D',
+      secondary: '#60708A',
+      tertiary: '#8B9AB2',
+      quaternary: '#B8C4D6',
+    },
+    fills: {
+      primary: '#EAF3FF',
+      secondary: '#DCEAFF',
+      tertiary: '#C5D9F5',
+      quaternary: '#ADC8EC',
+      vibrant: { secondary: '#4DE3D1' },
+    },
+    backgrounds: { primary: '#F4F8FF', secondary: '#F7FAFF' },
+    backgroundsGradient: { wb01: '#EAF3FF', wb02: '#E7F5F6' },
+    accents: { red: '#E05252', green: '#2E9B67', greenBg: '#E1F5EA' },
+  },
+  spacing: { x0: 0, xxs: 2, xs: 4, sm: 8, md: 12, ml: 16, lg: 20 },
+  radius: { s: 6, sm: 8, md: 12, ml: 16, lg: 20, xl: 24, full: 999, huge: 64 },
+};
+
 export default function App() {
   const [language, setLanguage] = useState<Language>(Language.English);
   const [englishFont, setEnglishFont] = useState<EnglishFont>(
@@ -121,6 +149,7 @@ export default function App() {
         mode,
         fontFamily: activeFontFamily,
         externalReference,
+        theme: themeOptions,
       });
       console.log('Vrtx SDK launched successfully');
     } catch (error: any) {
