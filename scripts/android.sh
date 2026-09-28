@@ -2,13 +2,6 @@
 set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Expo/AGP native builds currently require the supported JDK 21 runtime.
-android_java_home="${ANDROID_JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
-if [[ ! -x "$android_java_home/bin/java" ]]; then
-  echo "Android JDK not found at $android_java_home; set ANDROID_JAVA_HOME to a JDK 21 installation." >&2
-  exit 1
-fi
-export JAVA_HOME="$android_java_home"
 
 configure_only=false
 
