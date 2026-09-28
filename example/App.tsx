@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -19,6 +20,7 @@ import {
   Mode,
   type VrtxThemeOptions,
   onError,
+  onExit,
   onSuccess,
   setup,
 } from 'vrtx-react-native';
@@ -100,6 +102,7 @@ const themeOptions: VrtxThemeOptions = {
 };
 
 export default function App() {
+  const sdkStateRef = useRef<'idle' | 'launching' | 'open'>('idle');
   const [language, setLanguage] = useState<Language>(Language.English);
   const [englishFont, setEnglishFont] = useState<EnglishFont>(
     englishFonts[0].value,
@@ -110,6 +113,7 @@ export default function App() {
   const [mode, setMode] = useState<Mode>(Mode.LIGHT);
   const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
   const [externalReference, setExternalReference] = useState('');
+  const [isSdkBusy, setIsSdkBusy] = useState(false);
   const isArabic = language === Language.Arabic;
   const isDark = mode === Mode.DARK;
   const activeFontFamily = isArabic ? arabicFont : englishFont;
@@ -117,17 +121,27 @@ export default function App() {
 
   useEffect(() => {
     const successSub = onSuccess(() => {
+      sdkStateRef.current = 'open';
+      setIsSdkBusy(false);
       console.log('Vrtx screen is open!');
     });
 
     const errorSub = onError((err) => {
+      sdkStateRef.current = 'idle';
+      setIsSdkBusy(false);
       console.error('Vrtx error:', err.code, err.message);
       Alert.alert('Vrtx Error', err.message);
+    });
+
+    const exitSub = onExit(() => {
+      sdkStateRef.current = 'idle';
+      setIsSdkBusy(false);
     });
 
     return () => {
       successSub.remove();
       errorSub.remove();
+      exitSub.remove();
     };
   }, []);
 
@@ -139,6 +153,13 @@ export default function App() {
       );
       return;
     }
+
+    if (sdkStateRef.current !== 'idle') {
+      return;
+    }
+
+    sdkStateRef.current = 'launching';
+    setIsSdkBusy(true);
 
     try {
       await setup({
@@ -153,6 +174,8 @@ export default function App() {
       });
       console.log('Vrtx SDK launched successfully');
     } catch (error: any) {
+      sdkStateRef.current = 'idle';
+      setIsSdkBusy(false);
       console.error('Vrtx launch failed:', error);
       Alert.alert('Error', error.message);
     }
@@ -281,13 +304,22 @@ export default function App() {
 
         <Pressable
           accessibilityRole="button"
+          disabled={isSdkBusy}
           onPress={handlePress}
           style={({ pressed }) => [
             styles.primaryButton,
             isDark && styles.primaryButtonDark,
+            isSdkBusy && styles.primaryButtonDisabled,
             pressed && styles.primaryButtonPressed,
           ]}
         >
+          {isSdkBusy && (
+            <ActivityIndicator
+              color={isDark ? '#111217' : '#ffffff'}
+              size="small"
+              style={styles.primaryButtonLoader}
+            />
+          )}
           <Text
             style={[
               styles.primaryButtonText,
@@ -295,7 +327,13 @@ export default function App() {
               { fontFamily: activeFontFamily },
             ]}
           >
-            {isArabic ? 'ابدأ الآن' : 'Get started'}
+            {isSdkBusy
+              ? isArabic
+                ? 'جارٍ التحميل...'
+                : 'Loading...'
+              : isArabic
+                ? 'ابدأ الآن'
+                : 'Get started'}
           </Text>
         </Pressable>
       </SafeAreaView>
@@ -546,6 +584,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
     height: 46,
     borderRadius: 23,
@@ -558,6 +597,12 @@ const styles = StyleSheet.create({
   },
   primaryButtonPressed: {
     opacity: 0.82,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.55,
+  },
+  primaryButtonLoader: {
+    marginRight: 8,
   },
   primaryButtonText: {
     color: '#ffffff',
