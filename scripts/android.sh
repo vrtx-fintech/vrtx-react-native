@@ -115,5 +115,14 @@ npm ci --ignore-scripts
 npx expo prebuild --platform android --clean --no-install
 configure_android
 
+# Ensure the selected emulator can reach Metro on the fixed development port.
+metro_port=8081
+emulator_serial="$(adb devices | grep -m1 -E "^emulator-[0-9]+[[:space:]]+device" | cut -f1)"
+if [[ -n "$emulator_serial" ]]; then
+  echo "Using Android emulator: $emulator_serial"
+  export ANDROID_SERIAL="$emulator_serial"
+  adb -s "$emulator_serial" reverse "tcp:$metro_port" "tcp:$metro_port"
+fi
+
 # Build and run the debuggable Expo development app.
-npx expo run:android
+npx expo run:android --port "$metro_port"

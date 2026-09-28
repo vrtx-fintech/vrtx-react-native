@@ -28,6 +28,7 @@
       "usesCleartextTraffic": false
     },
     "plugins": [
+      "./plugins/withAndroidDebugMetro",
       [
         "./node_modules/expo-build-properties/app.plugin.js",
         {
