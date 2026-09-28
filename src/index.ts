@@ -3,6 +3,7 @@ import VrtxSdkModule, {
   type VrtxDesignOption,
   type VrtxThemeOptions,
 } from './VrtxSdkModule';
+import { Platform } from 'react-native';
 
 // Re-export enums for the public setup contract.
 export { DesignOption, Environment, Language, Mode } from './VrtxSdkModule';
@@ -65,16 +66,46 @@ export async function setup(
         }
       : configOrClientId;
 
-  return await VrtxSdkModule.setup(
+  const normalizedLanguage = config.language ?? 'ENGLISH';
+  const normalizedDesignOption = config.designOption ?? 'OPTION_C';
+  const themeJson =
+    config.theme === undefined ? undefined : JSON.stringify(config.theme);
+
+  if (Platform.OS === 'android') {
+    const optionsJson = JSON.stringify({
+      language: normalizedLanguage,
+      mode: config.mode,
+      fontFamily: config.fontFamily,
+      externalReference: config.externalReference,
+      designOption: normalizedDesignOption,
+      theme: themeJson,
+    });
+
+    const androidSetup = VrtxSdkModule.setup as unknown as (
+      clientId: string,
+      clientSecret: string,
+      environment: VrtxEnvironment,
+      optionsJson?: string,
+    ) => Promise<void>;
+
+    return androidSetup(
+      config.clientId,
+      config.clientSecret,
+      config.environment,
+      optionsJson,
+    );
+  }
+
+  return VrtxSdkModule.setup(
     config.clientId,
     config.clientSecret,
     config.environment,
-    config.language ?? 'ENGLISH',
+    normalizedLanguage,
     config.mode,
     config.fontFamily,
     config.externalReference,
-    config.designOption ?? 'OPTION_C',
-    config.theme === undefined ? undefined : JSON.stringify(config.theme),
+    normalizedDesignOption,
+    themeJson,
   );
 }
 

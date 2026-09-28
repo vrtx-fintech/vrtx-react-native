@@ -2,6 +2,14 @@
 set -euo pipefail
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Expo/AGP native builds currently require the supported JDK 21 runtime.
+android_java_home="${ANDROID_JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
+if [[ ! -x "$android_java_home/bin/java" ]]; then
+  echo "Android JDK not found at $android_java_home; set ANDROID_JAVA_HOME to a JDK 21 installation." >&2
+  exit 1
+fi
+export JAVA_HOME="$android_java_home"
+
 configure_only=false
 
 if [[ "${1:-}" == "--configure-only" ]]; then
@@ -12,12 +20,17 @@ fi
 android_dir="${1:-$project_root/example/android}"
 root_build_file="$android_dir/build.gradle"
 app_build_file="$android_dir/app/build.gradle"
+gradle_properties_file="$android_dir/gradle.properties"
 local_properties_file="$android_dir/local.properties"
 
 configure_android() {
   if [[ ! -f "$root_build_file" || ! -f "$app_build_file" ]]; then
     echo "Expected an Expo-generated Android project at: $android_dir" >&2
     exit 1
+  fi
+
+  if ! grep -Fq 'android.suppressUnsupportedCompileSdk=37.0' "$gradle_properties_file"; then
+    printf '\nandroid.suppressUnsupportedCompileSdk=37.0\n' >> "$gradle_properties_file"
   fi
 
   if [[ ! -f "$local_properties_file" ]]; then
@@ -39,20 +52,35 @@ allprojects {
     maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }
   }
   configurations.configureEach {
-    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-stdlib:2.1.20")
-    resolutionStrategy.force("org.jetbrains.kotlin:kotlin-reflect:2.1.20")
-    resolutionStrategy.force("androidx.lifecycle:lifecycle-runtime-compose-android:2.10.0")
-    resolutionStrategy.force("androidx.lifecycle:lifecycle-viewmodel-compose-android:2.10.0")
-    resolutionStrategy.eachDependency {
-      if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-serialization-")) {
-        useVersion("1.8.1")
-      }
-      if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-datetime")) {
-        useVersion("0.7.1")
+    resolutionStrategy {
+      force("androidx.compose:compose-bom:2026.06.01")
+      force("androidx.navigation:navigation-compose:2.9.8")
+      force("androidx.navigation:navigation-compose-android:2.9.8")
+      force("androidx.navigation:navigation-runtime:2.9.8")
+      force("androidx.navigation:navigation-runtime-android:2.9.8")
+      force("androidx.navigation:navigation-common:2.9.8")
+      force("androidx.navigation:navigation-common-android:2.9.8")
+      eachDependency {
+        if (requested.group in ["androidx.compose.ui", "androidx.compose.runtime", "androidx.compose.foundation", "androidx.compose.animation"]) {
+          useVersion("1.11.4")
+        }
+        if (requested.group == "androidx.lifecycle") {
+          useVersion("2.10.0")
+        }
+        if (requested.group == "androidx.navigation") {
+          useVersion("2.9.8")
+        }
       }
     }
   }
 }
+  gradle.projectsEvaluated {
+    allprojects {
+      tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions.freeCompilerArgs += '-Xskip-metadata-version-check'
+      }
+    }
+  }
 EOF
   fi
 

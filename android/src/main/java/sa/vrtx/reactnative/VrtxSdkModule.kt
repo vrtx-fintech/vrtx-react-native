@@ -74,6 +74,80 @@ class VrtxSdkModule : Module() {
     return FontFamily(typeface)
   }
   
+
+  private fun setupInternal(
+    clientId: String,
+    clientSecret: String,
+    environment: String,
+    language: String,
+    mode: String?,
+    fontFamilyName: String?,
+    externalReference: String?,
+    designOptionName: String?,
+    themeJson: String?,
+    promise: Promise,
+  ) {
+    val env = when(environment.uppercase()) {
+      "PRODUCTION" -> Environment.Production
+      else -> Environment.Sandbox
+    }
+
+    val lang = when(language.uppercase()) {
+      "ARABIC" -> Language.Arabic
+      else -> Language.English
+    }
+
+    val selectedMode = when(mode?.uppercase()) {
+      "DARK" -> Mode.DARK
+      else -> Mode.LIGHT
+    }
+
+    val designOption = when (designOptionName?.uppercase()) {
+      "OPTION_A" -> DesignOption.OptionA
+      "OPTION_B" -> DesignOption.OptionB
+      else -> DesignOption.OptionC
+    }
+
+    val fontFamily = getFontFamily(fontFamilyName)
+    val activity = getActivity()
+    if (activity == null) {
+      promise.reject(CodedException("VRX_ERROR", "Activity not available", null))
+      return
+    }
+
+    activity.runOnUiThread {
+      try {
+        Vrtx.setup(
+          clientId = clientId,
+          clientSecret = clientSecret,
+          environment = env,
+          language = lang,
+          mode = selectedMode,
+          designOption = designOption,
+          theme = themeOptions(themeJson),
+          fontFamily = fontFamily,
+          externalReference = externalReference,
+          onSuccess = {
+            promise.resolve(null)
+            sendEvent("onSuccess")
+          },
+          onError = { error ->
+            val errorMessage = error.message ?: "Unknown error"
+            promise.reject(CodedException("VRX_ERROR", errorMessage, null))
+            sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
+          },
+          onExit = {
+            sendEvent("onExit")
+          },
+        )
+      } catch (e: Exception) {
+        val errorMessage = e.message ?: "Failed to initialize Vrtx SDK"
+        promise.reject(CodedException("VRX_ERROR", errorMessage, e))
+        sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
+      }
+    }
+  }
+
   override fun definition() = ModuleDefinition {
     Name("VrtxSdk")
 
@@ -83,78 +157,27 @@ class VrtxSdkModule : Module() {
 
     Events("onSuccess", "onError", "onExit")
 
-    AsyncFunction("setup") { 
-      clientId: String, 
-      clientSecret: String, 
-      environment: String, 
-      language: String, 
-      mode: String?,
-      fontFamilyName: String?,
-      externalReference: String?,
-      designOptionName: String?,
-      themeJson: String?,
+    AsyncFunction("setup") {
+      clientId: String,
+      clientSecret: String,
+      environment: String,
+      optionsJson: String?,
       promise: Promise ->
-      
-      val env = when(environment.uppercase()) {
-        "PRODUCTION" -> Environment.Production
-        else -> Environment.Sandbox
-      }
-      
-      val lang = when(language.uppercase()) {
-        "ARABIC" -> Language.Arabic
-        else -> Language.English
-      }
-      
-      val selectedMode = when(mode?.uppercase()) {
-        "DARK" -> Mode.DARK
-        else -> Mode.LIGHT
-      }
+      val options = optionsJson?.let { runCatching { JSONObject(it) }.getOrNull() }
+      fun option(key: String): String? = options?.optString(key)?.takeIf { it.isNotBlank() }
 
-      val designOption = when (designOptionName?.uppercase()) {
-        "OPTION_A" -> DesignOption.OptionA
-        "OPTION_B" -> DesignOption.OptionB
-        else -> DesignOption.OptionC
-      }
-
-      val fontFamily = getFontFamily(fontFamilyName)
-      
-      val activity = getActivity()
-      if (activity == null) {
-        promise.reject(CodedException("VRX_ERROR", "Activity not available", null))
-        return@AsyncFunction
-      }
-      
-      activity.runOnUiThread {
-        try {
-          Vrtx.setup(
-            clientId = clientId,
-            clientSecret = clientSecret,
-            environment = env,
-            language = lang,
-            mode = selectedMode,
-            designOption = designOption,
-            theme = themeOptions(themeJson),
-            fontFamily = fontFamily,
-            externalReference = externalReference,
-            onSuccess = {
-              promise.resolve(null)
-              sendEvent("onSuccess")
-            },
-            onError = { error ->
-              val errorMessage = error.message ?: "Unknown error"
-              promise.reject(CodedException("VRX_ERROR", errorMessage, null))
-              sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
-            },
-            onExit = {
-              sendEvent("onExit")
-            },
-          )
-        } catch (e: Exception) {
-          val errorMessage = e.message ?: "Failed to initialize Vrtx SDK"
-          promise.reject(CodedException("VRX_ERROR", errorMessage, e))
-          sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
-        }
-      }
+      setupInternal(
+        clientId = clientId,
+        clientSecret = clientSecret,
+        environment = environment,
+        language = option("language") ?: "ENGLISH",
+        mode = option("mode"),
+        fontFamilyName = option("fontFamily"),
+        externalReference = option("externalReference"),
+        designOptionName = option("designOption"),
+        themeJson = option("theme"),
+        promise = promise,
+      )
     }
   }
 }
