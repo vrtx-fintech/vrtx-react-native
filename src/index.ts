@@ -1,8 +1,13 @@
 // Native module
-import VrtxSdkModule from './VrtxSdkModule';
+import VrtxSdkModule, {
+  type VrtxDesignOption,
+  type VrtxThemeOptions,
+} from './VrtxSdkModule';
+import { Platform } from 'react-native';
 
 // Re-export enums for the public setup contract.
-export { Environment, Language, Mode } from './VrtxSdkModule';
+export { DesignOption, Environment, Language, Mode } from './VrtxSdkModule';
+export type { VrtxDesignOption, VrtxThemeOptions } from './VrtxSdkModule';
 export { default as VrtxSdk } from './VrtxSdkModule';
 
 // Types
@@ -18,6 +23,8 @@ export interface VrtxConfig {
   mode?: VrtxMode;
   fontFamily?: string;
   externalReference?: string;
+  designOption?: VrtxDesignOption;
+  theme?: VrtxThemeOptions;
 }
 
 // Promise-based setup function - resolves when SDK screen opens
@@ -30,6 +37,8 @@ export function setup(
   mode?: VrtxMode,
   fontFamily?: string,
   externalReference?: string,
+  designOption?: VrtxDesignOption,
+  theme?: VrtxThemeOptions,
 ): Promise<void>;
 export async function setup(
   configOrClientId: VrtxConfig | string,
@@ -39,6 +48,8 @@ export async function setup(
   mode?: VrtxMode,
   fontFamily?: string,
   externalReference?: string,
+  designOption: VrtxDesignOption = 'OPTION_C',
+  theme?: VrtxThemeOptions,
 ): Promise<void> {
   const config =
     typeof configOrClientId === 'string'
@@ -50,17 +61,51 @@ export async function setup(
           mode,
           fontFamily,
           externalReference,
+          designOption,
+          theme,
         }
       : configOrClientId;
 
-  return await VrtxSdkModule.setup(
+  const normalizedLanguage = config.language ?? 'ENGLISH';
+  const normalizedDesignOption = config.designOption ?? 'OPTION_C';
+  const themeJson =
+    config.theme === undefined ? undefined : JSON.stringify(config.theme);
+
+  if (Platform.OS === 'android') {
+    const optionsJson = JSON.stringify({
+      language: normalizedLanguage,
+      mode: config.mode,
+      fontFamily: config.fontFamily,
+      externalReference: config.externalReference,
+      designOption: normalizedDesignOption,
+      theme: themeJson,
+    });
+
+    const androidSetup = VrtxSdkModule.setup as unknown as (
+      clientId: string,
+      clientSecret: string,
+      environment: VrtxEnvironment,
+      optionsJson?: string,
+    ) => Promise<void>;
+
+    return androidSetup(
+      config.clientId,
+      config.clientSecret,
+      config.environment,
+      optionsJson,
+    );
+  }
+
+  return VrtxSdkModule.setup(
     config.clientId,
     config.clientSecret,
     config.environment,
-    config.language ?? 'ENGLISH',
+    normalizedLanguage,
     config.mode,
     config.fontFamily,
     config.externalReference,
+    normalizedDesignOption,
+    themeJson,
   );
 }
 
@@ -72,6 +117,10 @@ export function addListener(
 export function addListener(
   eventName: 'onError',
   callback: (error: { code: string; message: string }) => void,
+): { remove: () => void };
+export function addListener(
+  eventName: 'onExit',
+  callback: () => void,
 ): { remove: () => void };
 export function addListener(
   eventName: string,
@@ -89,4 +138,8 @@ export function onError(
   callback: (error: { code: string; message: string }) => void,
 ) {
   return addListener('onError', callback);
+}
+
+export function onExit(callback: () => void) {
+  return addListener('onExit', callback);
 }

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   KeyboardAvoidingView,
@@ -17,7 +18,9 @@ import {
   Environment,
   Language,
   Mode,
+  type VrtxThemeOptions,
   onError,
+  onExit,
   onSuccess,
   setup,
 } from 'vrtx-react-native';
@@ -71,7 +74,35 @@ const arabicFonts = [
 type EnglishFont = (typeof englishFonts)[number]['value'];
 type ArabicFont = (typeof arabicFonts)[number]['value'];
 
+const themeOptions: VrtxThemeOptions = {
+  cardImage: 'https://example.com/card.png',
+  brandLogo: 'https://example.com/logo.png',
+  brandName: 'Atlas Pay',
+  colors: {
+    allBrands: { primary: '#377DFF', buttonLabel: '#FFFFFF' },
+    labels: {
+      primary: '#12233D',
+      secondary: '#60708A',
+      tertiary: '#8B9AB2',
+      quaternary: '#B8C4D6',
+    },
+    fills: {
+      primary: '#EAF3FF',
+      secondary: '#DCEAFF',
+      tertiary: '#C5D9F5',
+      quaternary: '#ADC8EC',
+      vibrant: { secondary: '#4DE3D1' },
+    },
+    backgrounds: { primary: '#F4F8FF', secondary: '#F7FAFF' },
+    backgroundsGradient: { wb01: '#EAF3FF', wb02: '#E7F5F6' },
+    accents: { red: '#E05252', green: '#2E9B67', greenBg: '#E1F5EA' },
+  },
+  spacing: { x0: 0, xxs: 2, xs: 4, sm: 8, md: 12, ml: 16, lg: 20 },
+  radius: { s: 6, sm: 8, md: 12, ml: 16, lg: 20, xl: 24, full: 999, huge: 64 },
+};
+
 export default function App() {
+  const sdkStateRef = useRef<'idle' | 'launching' | 'open'>('idle');
   const [language, setLanguage] = useState<Language>(Language.English);
   const [englishFont, setEnglishFont] = useState<EnglishFont>(
     englishFonts[0].value,
@@ -82,6 +113,7 @@ export default function App() {
   const [mode, setMode] = useState<Mode>(Mode.LIGHT);
   const [isFontDropdownOpen, setIsFontDropdownOpen] = useState(false);
   const [externalReference, setExternalReference] = useState('');
+  const [isSdkBusy, setIsSdkBusy] = useState(false);
   const isArabic = language === Language.Arabic;
   const isDark = mode === Mode.DARK;
   const activeFontFamily = isArabic ? arabicFont : englishFont;
@@ -89,17 +121,27 @@ export default function App() {
 
   useEffect(() => {
     const successSub = onSuccess(() => {
+      sdkStateRef.current = 'open';
+      setIsSdkBusy(false);
       console.log('Vrtx screen is open!');
     });
 
     const errorSub = onError((err) => {
+      sdkStateRef.current = 'idle';
+      setIsSdkBusy(false);
       console.error('Vrtx error:', err.code, err.message);
       Alert.alert('Vrtx Error', err.message);
+    });
+
+    const exitSub = onExit(() => {
+      sdkStateRef.current = 'idle';
+      setIsSdkBusy(false);
     });
 
     return () => {
       successSub.remove();
       errorSub.remove();
+      exitSub.remove();
     };
   }, []);
 
@@ -112,6 +154,13 @@ export default function App() {
       return;
     }
 
+    if (sdkStateRef.current !== 'idle') {
+      return;
+    }
+
+    sdkStateRef.current = 'launching';
+    setIsSdkBusy(true);
+
     try {
       await setup({
         clientId: VRTX_CLIENT_ID,
@@ -121,9 +170,12 @@ export default function App() {
         mode,
         fontFamily: activeFontFamily,
         externalReference,
+        theme: themeOptions,
       });
       console.log('Vrtx SDK launched successfully');
     } catch (error: any) {
+      sdkStateRef.current = 'idle';
+      setIsSdkBusy(false);
       console.error('Vrtx launch failed:', error);
       Alert.alert('Error', error.message);
     }
@@ -252,13 +304,22 @@ export default function App() {
 
         <Pressable
           accessibilityRole="button"
+          disabled={isSdkBusy}
           onPress={handlePress}
           style={({ pressed }) => [
             styles.primaryButton,
             isDark && styles.primaryButtonDark,
+            isSdkBusy && styles.primaryButtonDisabled,
             pressed && styles.primaryButtonPressed,
           ]}
         >
+          {isSdkBusy && (
+            <ActivityIndicator
+              color={isDark ? '#111217' : '#ffffff'}
+              size="small"
+              style={styles.primaryButtonLoader}
+            />
+          )}
           <Text
             style={[
               styles.primaryButtonText,
@@ -266,7 +327,13 @@ export default function App() {
               { fontFamily: activeFontFamily },
             ]}
           >
-            {isArabic ? 'ابدأ الآن' : 'Get started'}
+            {isSdkBusy
+              ? isArabic
+                ? 'جارٍ التحميل...'
+                : 'Loading...'
+              : isArabic
+                ? 'ابدأ الآن'
+                : 'Get started'}
           </Text>
         </Pressable>
       </SafeAreaView>
@@ -389,11 +456,15 @@ function Dropdown({
     top: number;
   } | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
+  const handleToggle = () => {
+    if (isOpen) {
       setMenuPosition(null);
-      return;
     }
+    onToggle();
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
 
     triggerRef.current?.measureInWindow((x, y, width, height) => {
       setMenuPosition({
@@ -407,7 +478,7 @@ function Dropdown({
     <View style={styles.dropdown}>
       <View ref={triggerRef} collapsable={false}>
         <Pressable
-          onPress={onToggle}
+          onPress={handleToggle}
           style={[styles.dropdownTrigger, isDark && styles.dropdownTriggerDark]}
         >
           <Text style={[styles.selectValue, isDark && styles.selectValueDark]}>
@@ -417,9 +488,9 @@ function Dropdown({
         </Pressable>
       </View>
 
-      <Modal transparent visible={isOpen} onRequestClose={onToggle}>
+      <Modal transparent visible={isOpen} onRequestClose={handleToggle}>
         <View style={styles.dropdownModal}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={onToggle} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={handleToggle} />
           {menuPosition && (
             <View style={[styles.dropdownMenu, menuPosition]}>
               <FlatList
@@ -513,6 +584,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
     height: 46,
     borderRadius: 23,
@@ -525,6 +597,12 @@ const styles = StyleSheet.create({
   },
   primaryButtonPressed: {
     opacity: 0.82,
+  },
+  primaryButtonDisabled: {
+    opacity: 0.55,
+  },
+  primaryButtonLoader: {
+    marginRight: 8,
   },
   primaryButtonText: {
     color: '#ffffff',

@@ -28,8 +28,9 @@
       "usesCleartextTraffic": false
     },
     "plugins": [
+      "./plugins/withAndroidDebugMetro",
       [
-        "expo-build-properties",
+        "./node_modules/expo-build-properties/app.plugin.js",
         {
           "android": {
             "compileSdkVersion": 37,
