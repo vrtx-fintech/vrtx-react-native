@@ -184,6 +184,125 @@ For a TestFlight build, consumers should:
 Use the final bundle identifier before issuing production credentials. Contact
 Vrtx support if the identifier or signing setup changes after onboarding.
 
+## Run the demo locally
+
+Use the published SDK installed in `example/`; do not use `npm link`.
+Install Node.js, then the native toolchain for your platform (Xcode and CocoaPods
+on macOS for iOS; JDK 21 and the Android SDK for Android).
+
+```bash
+cd example
+npm ci --ignore-scripts
+# Set EXPO_PUBLIC_VRTX_CLIENT_ID and EXPO_PUBLIC_VRTX_CLIENT_SECRET in .env.local.
+# EXPO_PUBLIC_VRTX_ENVIRONMENT defaults to SANDBOX.
+npm run ios       # or: npm run android
+```
+
+Both commands regenerate only the selected native project, apply its required
+configuration, build, and launch through Expo. Arguments are forwarded to Expo,
+e.g. `npm run ios -- --device` or `npm run android -- --device`.
+`ios:dev` and `android:dev` are aliases of the same commands. From the repository
+root, `npm run ios` and `npm run android` use these commands too.
+
+A normal `npm install` still runs prebuild for both platforms. For a platform-only
+install or CI, use `npm ci --ignore-scripts` followed by the launch command above.
+Do not edit the generated `example/ios` and `example/android` projects directly.
+Native configuration changes need a rebuild, not just a Metro reload.
+
+The Android helper derives the local debug certificate hash from the generated
+keystore. Set `VRTX_CERT_HASH` for a different signing key; the release workflow
+checks it against the injected release keystore.
+
+To reproduce the standalone iOS CI build after installing dependencies:
+
+```bash
+cd example
+npm run prebuild -- --platform ios --no-install
+(cd ios && pod install)
+cd ..
+bash scripts/ios.sh simulator
+```
+
+The simulator ZIP is written to `example/ios/build/demo/ios-simulator.zip` and
+contains the JavaScript bundle, so it does not need Metro. Simulator builds use
+ad-hoc signing without a distribution certificate.
+CI builds the published package pinned by the example lockfile; it does not
+substitute unreleased SDK changes from the checkout.
+
+## Release the demo
+
+Run **Actions → App Distribution** from `main`. Select `android`, `ios`, or
+`both`, a version bump, and release notes. Enable `testflight` to additionally
+archive and upload the iOS app to App Store Connect.
+
+| Platform | Preview  | Device distribution       | Downloadable artifacts                   |
+| -------- | -------- | ------------------------- | ---------------------------------------- |
+| Android  | Appetize | Firebase App Distribution | Release APK and preview APK              |
+| iOS      | Appetize | TestFlight when requested | Simulator ZIP, signed IPA when requested |
+
+For an on-demand PR preview, either enter the open PR number in `pr_number`
+(recommended; the workflow resolves and pins its current head commit), or choose
+the PR branch in the **Run workflow** branch selector. To test changes to the
+workflow YAML itself, select the PR branch as the workflow ref; `pr_number` selects app source using the workflow from that ref.
+PR-number runs support open PRs in this repository; fork PRs cannot use
+distribution credentials.
+
+```bash
+# Build and upload Android + iOS Appetize previews for an open PR:
+gh workflow run app-distribution.yml --ref main -f pr_number=123 -f platform=both
+# Build downloadable artifacts only, without upload credentials:
+gh workflow run app-distribution.yml --ref main -f pr_number=123 -f platform=ios -F dry_run=true
+```
+
+PR/branch previews use `0.0.<workflow run number>`, never reserve a demo tag,
+and skip Firebase, TestFlight, and release announcements. Their run summary
+links the selected source and exact commit to the platform outputs. To retry,
+use **Re-run failed jobs** on the run page. `testflight=true` requires a main
+release. `dry_run=true` works on main and PRs: it skips tags, uploads, and
+announcements, and Android uses its generated debug signing key. Demo credentials
+are optional for a build-only run; launching the SDK still needs them.
+
+For main releases, both platforms share one demo version and release notes. The workflow reserves
+an annotated `demo-X.Y.Z` tag before distribution so partially uploaded releases
+cannot reuse a version on the next dispatch. Releases on each selected ref/PR are serialized and do not
+cancel an upload already in progress. Re-run **failed jobs** to retry the same
+release. Re-running all jobs reserves a new version. A final Actions summary and
+one Slack announcement report each platform's outcome, including failures.
+TestFlight upload success does not mean Apple has finished processing the build
+or enabled it for testers.
+
+Configure these Actions secrets at repository level or in the `sandbox`
+environment:
+
+| Used by                    | Secrets                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Both platforms             | `EXPO_PUBLIC_VRTX_CLIENT_ID`, `EXPO_PUBLIC_VRTX_CLIENT_SECRET`, `APPETIZE_API_TOKEN`                                     |
+| Android signing            | `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `VRTX_CERT_HASH`    |
+| Android Firebase           | `FIREBASE_SERVICE_ACCOUNT_KEY`, `SANDBOX_FIREBASE_APP_ID`, `FIREBASE_TESTERS`                                            |
+| Optional iOS signing       | `IOS_DISTRIBUTION_CERT_BASE64`, `IOS_DISTRIBUTION_CERT_PASSWORD`, `IOS_PROVISIONING_PROFILE_BASE64`, `KEYCHAIN_PASSWORD` |
+| Optional TestFlight upload | `APP_STORE_CONNECT_API_KEY_ID`, `APP_STORE_CONNECT_API_ISSUER_ID`, `APP_STORE_CONNECT_API_KEY_BASE64`                    |
+| Optional announcement      | `SLACK_WEBHOOK_URL`                                                                                                      |
+
+Use an App Store distribution profile and App Store Connect app for
+`sa.vrtx.reactnative.example`. The workflow validates the profile's identity,
+expiration, and distribution type, applies signing only to the app target, and
+removes signing material when finished. TestFlight is off by default; requesting
+it without its secrets fails before building. The simulator preview needs no
+Apple distribution credentials.
+
+Appetize uses a [zipped iOS simulator app](https://docs.appetize.io/platform/app-management/uploading-apps/ios).
+The React Native demo consumes the published native SDK binaries; host app
+compiler flags such as `VRTX_E2E` cannot change security checks compiled into
+those binaries. A successful simulator build alone does not verify onboarding.
+
+## Releasing the SDK
+
+SDK npm releases are separate from demo distribution. Run **Actions → Release**
+to publish a patch, minor, or major release from `main`. Update the example's
+`vrtx-react-native` dependency and lockfile to the published version, then
+reinstall and rebuild the demo on both platforms. `npm run release` currently
+prints the CI release instructions; it does not publish locally.
+
 ## Support
 
 For credentials, license keys, and integration help, contact your Vrtx account manager or [contact@vrtx.sa](mailto:contact@vrtx.sa).

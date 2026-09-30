@@ -45,7 +45,10 @@
     "expo-module": "expo-module",
     "release": "echo \"Releases are published by CI: Actions -> Release. See README > Releasing.\" && exit 1",
     "open:ios": "xed example/ios",
-    "open:android": "cd example/android && ./gradlew :app:installDebug --no-build-cache"
+    "open:android": "npm run android --",
+    "android": "npm --prefix example run android --",
+    "ios": "npm --prefix example run ios --",
+    "test:workflows": "node --test scripts/__tests__/*.test.cjs"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",

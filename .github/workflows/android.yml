@@ -12,6 +12,7 @@ permissions:
 jobs:
   build-example-app:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -25,17 +26,12 @@ jobs:
           cache-dependency-path: example/package-lock.json
 
       - name: Install example dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
         working-directory: example
 
       - name: Generate Android project
-        run: npx expo prebuild --platform android --no-install
+        run: npm run prebuild -- --platform android --no-install
         working-directory: example
-
-      # Expo regenerates these Gradle files during prebuild. Apply the same
-      # Vrtx/Talsec configuration used by local Android testing.
-      - name: Configure FreeRASP Android dependencies
-        run: bash scripts/android.sh --configure-only example/android
 
       - name: Set up Java
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
@@ -68,3 +64,12 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-apk
+          path: example/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

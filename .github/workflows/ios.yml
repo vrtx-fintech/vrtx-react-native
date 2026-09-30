@@ -13,6 +13,7 @@ jobs:
   build-example-ios:
     name: build-example-ios
     runs-on: macos-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -25,77 +26,32 @@ jobs:
           cache: npm
           cache-dependency-path: example/package-lock.json
 
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: latest-stable
+
       - name: Install example dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
         working-directory: example
 
       - name: Generate iOS project
-        run: npx expo prebuild --platform ios --no-install
+        run: npm run prebuild -- --platform ios --no-install
         working-directory: example
 
       - name: Install CocoaPods dependencies
         run: pod install
         working-directory: example/ios
 
-      # Pinned to 26.4 while VRTX <= 0.1.5 leaked DeviceKit into its public
-      # .swiftinterface: rebuilding that interface failed with "cannot load
-      # underlying module for 'DeviceKit'", and Swift reported it as a
-      # compiler-version mismatch, so the pin looked like a toolchain
-      # requirement. It never was. VRTX 0.1.6 keeps DeviceKit out of the ABI and
-      # builds on current Xcode — verified against 26.4 (Swift 6.3.1) here and
-      # Xcode 26.6 (Swift 6.3.3) locally — so CI tracks latest-stable again.
-      - name: Set up Xcode
-        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
-        with:
-          xcode-version: latest-stable
-
-      - name: Show toolchain
-        run: |
-          xcodebuild -version
-          xcrun swift --version
-
-      - name: Install iOS signing assets
-        id: signing
-        run: |
-          if [ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" ] || [ -z "$IOS_PROVISIONING_PROFILE_BASE64" ]; then
-            echo "::warning::iOS signing secrets are unavailable; skipping the signed release archive."
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          certificate_path="$RUNNER_TEMP/distribution.p12"
-          keychain_path="$RUNNER_TEMP/build.keychain-db"
-          profiles_path="$HOME/Library/MobileDevice/Provisioning Profiles"
-
-          echo "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
-          mkdir -p "$profiles_path"
-          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$profiles_path/vrtx.mobileprovision"
-
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
-          security set-keychain-settings -lut 21600 "$keychain_path"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychain_path"
-          security import "$certificate_path" -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain_path"
-          security list-keychain -d user -s "$keychain_path" login.keychain-db
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$keychain_path"
-
-          echo "configured=true" >> "$GITHUB_OUTPUT"
+      - name: Build standalone iOS simulator app
+        run: bash scripts/ios.sh simulator
         env:
-          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
-          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
-          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+          NODE_ENV: production
 
-      - name: Archive signed iOS release app
-        if: steps.signing.outputs.configured == 'true'
-        run: |
-          xcodebuild \
-            -workspace vrtxreactnativeexample.xcworkspace \
-            -scheme vrtxreactnativeexample \
-            -configuration Release \
-            -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/vrtx-react-native-example.xcarchive" \
-            COMPILER_INDEX_STORE_ENABLE=NO \
-            SWIFT_STRICT_CONCURRENCY=minimal \
-            archive
-        working-directory: example/ios
+      - name: Upload simulator artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-simulator
+          path: example/ios/build/demo/ios-simulator.zip
+          if-no-files-found: error
+          retention-days: 7
