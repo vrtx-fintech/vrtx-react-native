@@ -24,72 +24,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-pull-request:
-    name: Test React Native demo app
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Node.js 24
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: example/package-lock.json
-
-      - name: Install example dependencies
-        run: npm ci
-        working-directory: example
-
-      - name: Generate Android project
-        run: npx expo prebuild --platform android --no-install --clean
-        working-directory: example
-
-      - name: Configure Android dependency versions
-        run: bash scripts/android.sh --configure-only example/android
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-        working-directory: example/android
-
-      - name: Set Android SDK path
-        run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
-        working-directory: example/android
-
-      - name: Build demo app release APK
-        run: ./gradlew app:assembleRelease --build-cache
-        working-directory: example/android
-        env:
-          NODE_ENV: production
-
-      - name: Upload demo app APK
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: react-native-demo-app-${{ github.event.pull_request.number }}-${{ github.sha }}
-          path: example/android/app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
-
   prepare:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     name: Resolve app version
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }}
       version_code: ${{ steps.version.outputs.version_code }}
+      release_notes: ${{ steps.version.outputs.release_notes }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -98,23 +40,34 @@ jobs:
       - id: version
         env:
           BUMP: ${{ inputs.bump }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          latest=$(git tag --list 'demo-*' --sort=-v:refname | grep -E '^demo-[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
-          current=${latest#demo-}
-          current=${current:-1.0.0}
-          IFS=. read -r major minor patch <<< "$current"
-          case "$BUMP" in
-            patch) patch=$((patch + 1)) ;;
-            minor) minor=$((minor + 1)); patch=0 ;;
-            major) major=$((major + 1)); minor=0; patch=0 ;;
-          esac
-          version="$major.$minor.$patch"
-          version_code=$((major * 1000000 + minor * 1000 + patch))
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            pr_number=${PR_NUMBER:-0}
+            version="0.0.${pr_number}"
+            version_code=$((900000000 + pr_number))
+            release_notes="${RELEASE_NOTES:-React Native demo app - 2026-09-30} (PR #${pr_number})"
+          else
+            latest=$(git tag --list 'demo-*' --sort=-v:refname | grep -E '^demo-[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
+            current=${latest#demo-}
+            current=${current:-1.0.0}
+            IFS=. read -r major minor patch <<< "$current"
+            case "$BUMP" in
+              patch) patch=$((patch + 1)) ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+            esac
+            version="$major.$minor.$patch"
+            version_code=$((major * 1000000 + minor * 1000 + patch))
+            release_notes="${RELEASE_NOTES:-Manual release}"
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
+          echo "release_notes=$release_notes" >> "$GITHUB_OUTPUT"
 
   distribute:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     name: Build & Distribute
     needs: prepare
     runs-on: ubuntu-24.04
@@ -308,7 +261,7 @@ jobs:
         shell: bash
         env:
           APP_ID: ${{ secrets.SANDBOX_FIREBASE_APP_ID }}
-          RELEASE_NOTES: ${{ inputs.release_notes }}
+          RELEASE_NOTES: ${{ needs.prepare.outputs.release_notes }}
           TESTERS: ${{ secrets.FIREBASE_TESTERS }}
         run: |
           test -n "$APP_ID" && test -n "$TESTERS"
@@ -354,7 +307,7 @@ jobs:
           WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           APPETIZE_URL: ${{ steps.appetize.outputs.url }}
           APK_ARTIFACT_URL: ${{ steps.apk-artifact.outputs.artifact-url }}
-          NOTES: ${{ inputs.release_notes }}
+          NOTES: ${{ needs.prepare.outputs.release_notes }}
           VERSION: ${{ needs.prepare.outputs.version }}
           CLIENT_ID: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_ID }}
         run: |
