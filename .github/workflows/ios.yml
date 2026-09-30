@@ -15,9 +15,16 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 45
 
+    env:
+      EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_VRTX_CLIENT_ID: ${{ vars.PUBLIC_DEMO_CLIENT_ID }}
+      EXPO_PUBLIC_VRTX_CLIENT_SECRET: ${{ vars.PUBLIC_DEMO_CLIENT_SECRET }}
+      EXPO_PUBLIC_VRTX_ENVIRONMENT: SANDBOX
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -44,7 +51,7 @@ jobs:
         working-directory: example/ios
 
       - name: Build standalone iOS simulator app
-        run: bash scripts/ios.sh simulator
+        run: bash scripts/ios.sh
         env:
           NODE_ENV: production
 

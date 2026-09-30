@@ -5,12 +5,12 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "node ./scripts/run-native.js android",
+    "android": "node ./scripts/native.js android",
     "android:dev": "npm run android --",
-    "ios": "node ./scripts/run-native.js ios",
+    "ios": "node ./scripts/native.js ios",
     "postinstall": "npm run prebuild",
     "ios:dev": "npm run ios --",
-    "prebuild": "node ./scripts/prebuild.js"
+    "prebuild": "node ./scripts/native.js prebuild"
   },
   "dependencies": {
     "babel-preset-expo": "~57.0.11",
