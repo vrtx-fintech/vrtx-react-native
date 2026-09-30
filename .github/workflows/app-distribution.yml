@@ -16,7 +16,7 @@ on:
         default: Manual release
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
