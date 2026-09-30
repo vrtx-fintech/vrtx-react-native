@@ -116,15 +116,14 @@ all omitted fields retain the native SDK defaults.
 ## Android app integrity (freeRASP)
 
 `vrtx-android` uses Talsec freeRASP to verify the host app's package name and
-signing certificate. Add the freeRASP and JitPack repositories to your Android
-project, then set the required manifest placeholders in the app module:
+signing certificate. Add the JitPack repository to your Android project, then
+set the required manifest placeholders in the app module:
 
 ```groovy
 // android/settings.gradle
 dependencyResolutionManagement {
   repositories {
     google()
-    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }
     maven { url 'https://jitpack.io' }
     mavenCentral()
   }

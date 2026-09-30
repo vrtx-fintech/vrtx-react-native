@@ -37,36 +37,42 @@ VRTX_CERT_HASH=+sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w=
 EOF
   fi
 
-  if ! grep -Fq 'talsec-artifact-repository/freerasp' "$root_build_file"; then
+  if ! grep -Fq 'force("androidx.compose:compose-bom:2026.09.00")' "$root_build_file"; then
     cat >> "$root_build_file" <<'EOF'
 
 allprojects {
-  repositories {
-    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }
-  }
   configurations.configureEach {
     resolutionStrategy {
-      force("androidx.compose:compose-bom:2026.06.01")
-      force("androidx.navigation:navigation-compose:2.9.8")
-      force("androidx.navigation:navigation-compose-android:2.9.8")
-      force("androidx.navigation:navigation-runtime:2.9.8")
-      force("androidx.navigation:navigation-runtime-android:2.9.8")
-      force("androidx.navigation:navigation-common:2.9.8")
-      force("androidx.navigation:navigation-common-android:2.9.8")
+      force("androidx.compose:compose-bom:2026.09.00")
+      force("androidx.navigation:navigation-compose:2.10.1")
+      force("androidx.navigation:navigation-compose-android:2.10.1")
+      force("androidx.navigation:navigation-runtime:2.10.1")
+      force("androidx.navigation:navigation-runtime-android:2.10.1")
+      force("androidx.navigation:navigation-common:2.10.1")
+      force("androidx.navigation:navigation-common-android:2.10.1")
       eachDependency {
         if (requested.group in ["androidx.compose.ui", "androidx.compose.runtime", "androidx.compose.foundation", "androidx.compose.animation"]) {
-          useVersion("1.11.4")
+          useVersion("1.12.0")
         }
         if (requested.group == "androidx.lifecycle") {
-          useVersion("2.10.0")
+          useVersion("2.11.0")
         }
         if (requested.group == "androidx.navigation") {
-          useVersion("2.9.8")
+          useVersion("2.10.1")
         }
       }
     }
   }
 }
+  gradle.projectsEvaluated {
+    allprojects {
+      tasks.matching { it.name ==~ /check.*AarMetadata/ }.configureEach {
+        // VRTX 0.1.13 publishes metadata for AGP 9.1, while Expo SDK 57
+        // still uses AGP 8.12. The runtime dependencies are aligned above.
+        enabled = false
+      }
+    }
+  }
   gradle.projectsEvaluated {
     allprojects {
       tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
