@@ -124,11 +124,14 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
           test -s "$keystore"
 
+          keytool_error=$(mktemp)
           if ! cert_details=$(keytool -list -v \
             -keystore "$keystore" \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS"); then
+            -alias "$ANDROID_KEY_ALIAS" 2>"$keytool_error"); then
+            diagnostic=$(tr "\\n" " " < "$keytool_error")
             echo "::error::Unable to read the signing certificate from ANDROID_KEYSTORE_BASE64. Check the keystore password and alias."
+            echo "::error::keytool diagnostic:" "$diagnostic"
             exit 1
           fi
           cert_hex=$(printf '%s\n' "$cert_details" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ':')
