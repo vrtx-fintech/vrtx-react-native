@@ -13,7 +13,7 @@ on:
         description: Release notes for Firebase App Distribution.
         type: string
         required: true
-        default: React Native demo app - 2026-09-30
+        default: Manual release
 
 permissions:
   contents: read
