@@ -109,12 +109,18 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
           test -s "$keystore"
 
-          cert_details=$(keytool -list -v \
+          if ! cert_details=$(keytool -list -v \
             -keystore "$keystore" \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" \
-            -keypass "$ANDROID_KEY_PASSWORD")
+            -alias "$ANDROID_KEY_ALIAS"); then
+            echo "::error::Unable to read the signing certificate from ANDROID_KEYSTORE_BASE64. Check the keystore password and alias."
+            exit 1
+          fi
           cert_hex=$(printf '%s\n' "$cert_details" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ':')
+          if [ -z "$cert_hex" ]; then
+            echo "::error::The signing keystore did not expose a SHA-256 certificate fingerprint."
+            exit 1
+          fi
           actual_cert_hash=$(printf '%s' "$cert_hex" | xxd -r -p | base64 -w0)
           expected_cert_hashes=$(printf '%s' "$VRTX_CERT_HASH" | tr ',' '\n' | sed 's/[[:space:]]//g')
           if ! grep -Fxq "$actual_cert_hash" <<< "$expected_cert_hashes"; then
