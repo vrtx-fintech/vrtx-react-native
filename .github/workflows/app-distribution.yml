@@ -14,7 +14,6 @@ on:
         type: string
         required: true
         default: React Native demo app - 2026-09-30
-  pull_request:
 
 permissions:
   contents: read
@@ -25,7 +24,7 @@ concurrency:
 
 jobs:
   prepare:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     name: Resolve app version
     runs-on: ubuntu-24.04
     outputs:
@@ -67,7 +66,7 @@ jobs:
           echo "release_notes=$release_notes" >> "$GITHUB_OUTPUT"
 
   distribute:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     name: Build & Distribute
     needs: prepare
     runs-on: ubuntu-24.04
