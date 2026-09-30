@@ -124,15 +124,32 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
           test -s "$keystore"
 
+          effective_store_password="$ANDROID_KEYSTORE_PASSWORD"
+          effective_key_password="$ANDROID_KEY_PASSWORD"
           if ! cert_details=$(keytool -list -v \
             -keystore "$keystore" \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -storepass "$effective_store_password" \
             -alias "$ANDROID_KEY_ALIAS" 2>&1); then
-            diagnostic=$(printf "%s" "$cert_details" | tr "\\n" " ")
-            echo "::error::Unable to read the signing certificate from ANDROID_KEYSTORE_BASE64. Check the keystore password and alias."
-            echo "::error::keytool diagnostic:" "$diagnostic"
-            exit 1
+            if [ "$ANDROID_KEY_PASSWORD" != "$ANDROID_KEYSTORE_PASSWORD" ] && \
+              swapped_cert_details=$(keytool -list -v \
+                -keystore "$keystore" \
+                -storepass "$ANDROID_KEY_PASSWORD" \
+                -alias "$ANDROID_KEY_ALIAS" 2>&1); then
+              effective_store_password="$ANDROID_KEY_PASSWORD"
+              effective_key_password="$ANDROID_KEYSTORE_PASSWORD"
+              cert_details="$swapped_cert_details"
+              echo "::warning::ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_PASSWORD appear to be swapped; using the values that unlock the keystore."
+            else
+              diagnostic=$(printf "%s" "$cert_details" | tr "\\n" " ")
+              echo "::error::Unable to read the signing certificate from ANDROID_KEYSTORE_BASE64. ANDROID_KEYSTORE_PASSWORD does not unlock this keystore."
+              echo "::error::keytool diagnostic:" "$diagnostic"
+              exit 1
+            fi
           fi
+          {
+            printf "CI_ANDROID_KEYSTORE_PASSWORD=%s\n" "$effective_store_password"
+            printf "CI_ANDROID_KEY_PASSWORD=%s\n" "$effective_key_password"
+          } >> "$GITHUB_ENV"
           cert_hex=$(printf '%s\n' "$cert_details" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ':')
           if [ -z "$cert_hex" ]; then
             echo "::error::The signing keystore did not expose a SHA-256 certificate fingerprint."
@@ -153,9 +170,9 @@ jobs:
               signingConfigs {
                   ciRelease {
                       storeFile file("release.keystore")
-                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      storePassword System.getenv("CI_ANDROID_KEYSTORE_PASSWORD")
                       keyAlias System.getenv("ANDROID_KEY_ALIAS")
-                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                      keyPassword System.getenv("CI_ANDROID_KEY_PASSWORD")
                   }
               }
               buildTypes {
