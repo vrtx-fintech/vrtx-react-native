@@ -75,8 +75,6 @@ type EnglishFont = (typeof englishFonts)[number]['value'];
 type ArabicFont = (typeof arabicFonts)[number]['value'];
 
 const themeOptions: VrtxThemeOptions = {
-  cardImage: 'https://example.com/card.png',
-  brandLogo: 'https://example.com/logo.png',
   brandName: 'Atlas Pay',
   colors: {
     allBrands: { primary: '#7C3AED', buttonLabel: '#FFFFFF' },
@@ -179,13 +177,14 @@ export default function App() {
     const successSub = onSuccess(() => {
       sdkStateRef.current = 'open';
       setIsSdkBusy(false);
-      console.log('Vrtx screen is open!');
     });
 
     const errorSub = onError((err) => {
+      // Both native bridges reject setup AND emit onError for launch failures.
+      // The catch below owns those errors; events handle failures after opening.
+      if (sdkStateRef.current !== 'open') return;
       sdkStateRef.current = 'idle';
       setIsSdkBusy(false);
-      console.error('Vrtx error:', err.code, err.message);
       Alert.alert('Vrtx Error', err.message);
     });
 
@@ -228,12 +227,13 @@ export default function App() {
         externalReference,
         theme: themeOptions,
       });
-      console.log('Vrtx SDK launched successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       sdkStateRef.current = 'idle';
       setIsSdkBusy(false);
-      console.error('Vrtx launch failed:', error);
-      Alert.alert('Error', error.message);
+      Alert.alert(
+        'Vrtx Error',
+        error instanceof Error ? error.message : 'Unable to open the SDK.',
+      );
     }
   };
 

@@ -26,15 +26,28 @@ configure_android() {
     printf '\nandroid.suppressUnsupportedCompileSdk=37.0\n' >> "$gradle_properties_file"
   fi
 
-  if [[ ! -f "$local_properties_file" ]]; then
-    cat > "$local_properties_file" <<'EOF'
-sdk.dir=/home/monaam/Android/Sdk
-java.home=/usr/lib/jvm/java-21-openjdk-amd64
+  # Resolve the local SDK from the environment or the standard host location.
+  # Preserve an existing path and never hard-code a developer's home directory.
+  if ! grep -q '^sdk.dir=' "$local_properties_file" 2>/dev/null; then
+    sdk_dir="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+    if [[ -z "$sdk_dir" ]]; then
+      if [[ "$(uname -s)" == Darwin ]]; then sdk_dir="$HOME/Library/Android/sdk";
+      else sdk_dir="$HOME/Android/Sdk"; fi
+    fi
+    if [[ -d "$sdk_dir" ]]; then printf '\nsdk.dir=%s\n' "$sdk_dir" >> "$local_properties_file"; fi
+  fi
 
-# Talsec freeRASP: Base64-encoded SHA-256 of android/app/debug.keystore.
-# Replace with the certificate hash for the key that signs a release build.
-VRTX_CERT_HASH=+sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w=
-EOF
+  # A local debug build uses the generated key. iOS-only installs may have no
+  # JDK, so leave an actionable warning rather than failing their postinstall.
+  if [[ -z "${VRTX_CERT_HASH:-}" ]] && ! grep -q '^VRTX_CERT_HASH=' "$local_properties_file" 2>/dev/null; then
+    if [[ -f "$android_dir/app/debug.keystore" ]] && command -v keytool >/dev/null; then
+      if debug_hash="$(keytool -exportcert -keystore "$android_dir/app/debug.keystore" \
+        -storepass android -alias androiddebugkey | openssl dgst -sha256 -binary | openssl base64 -A)"; then
+        printf '\nVRTX_CERT_HASH=%s\n' "$debug_hash" >> "$local_properties_file"
+      else
+        echo 'Configure a JDK or set VRTX_CERT_HASH before running the Android demo.' >&2
+      fi
+    fi
   fi
 
   if ! grep -Fq 'force("androidx.compose:compose-bom:2026.09.00")' "$root_build_file"; then
@@ -108,20 +121,5 @@ if "$configure_only"; then
 fi
 
 cd "$project_root/example"
-# `postinstall` runs a cross-platform Expo prebuild. Skip it here so local
-# Android testing does not need to remove an unrelated generated iOS project.
 npm ci --ignore-scripts
-npx expo prebuild --platform android --clean --no-install
-configure_android
-
-# Ensure the selected emulator can reach Metro on the fixed development port.
-metro_port=8081
-emulator_serial="$(adb devices | grep -m1 -E "^emulator-[0-9]+[[:space:]]+device" | cut -f1)"
-if [[ -n "$emulator_serial" ]]; then
-  echo "Using Android emulator: $emulator_serial"
-  export ANDROID_SERIAL="$emulator_serial"
-  adb -s "$emulator_serial" reverse "tcp:$metro_port" "tcp:$metro_port"
-fi
-
-# Build and run the debuggable Expo development app.
-npx expo run:android --port "$metro_port"
+exec npm run android -- "$@"
