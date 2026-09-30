@@ -85,8 +85,71 @@ jobs:
         run: npx expo prebuild --platform android --no-install --clean
         working-directory: example
 
-      - name: Configure FreeRASP Android dependencies
+      - name: Configure Android dependency versions
         run: bash scripts/android.sh --configure-only example/android
+
+      - name: Configure Android release signing
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD VRTX_CERT_HASH; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set."
+              exit 1
+            fi
+          done
+
+          keystore="$GITHUB_WORKSPACE/example/android/app/release.keystore"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          test -s "$keystore"
+
+          cert_hex=$(keytool -list -v \
+            -keystore "$keystore" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ':')
+          actual_cert_hash=$(printf '%s' "$cert_hex" | xxd -r -p | base64 -w0)
+          expected_cert_hashes=$(printf '%s' "$VRTX_CERT_HASH" | tr ',' '\n' | sed 's/[[:space:]]//g')
+          if ! grep -Fxq "$actual_cert_hash" <<< "$expected_cert_hashes"; then
+            echo "::error::VRTX_CERT_HASH does not match the certificate in ANDROID_KEYSTORE_BASE64."
+            exit 1
+          fi
+
+          cat >> "$GITHUB_WORKSPACE/example/android/app/build.gradle" <<'EOF'
+
+          // CI release and Appetize preview signing. The keystore is injected by the
+          // distribution workflow and is never committed to the repository.
+          android {
+              signingConfigs {
+                  ciRelease {
+                      storeFile file("release.keystore")
+                      storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.ciRelease
+                  }
+                  preview {
+                      initWith release
+                      matchingFallbacks = ['release']
+                      debuggable true
+                      minifyEnabled false
+                      shrinkResources false
+                      signingConfig signingConfigs.ciRelease
+                  }
+              }
+          }
+          EOF
 
       - name: Set up JDK 21
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
@@ -115,6 +178,19 @@ jobs:
           EXPO_PUBLIC_VRTX_ENVIRONMENT: SANDBOX
           VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build Appetize preview APK
+        run: ./gradlew app:assemblePreview --refresh-dependencies
+        working-directory: example/android
+        env:
+          NODE_ENV: production
+          EXPO_PUBLIC_VRTX_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_ID }}
+          EXPO_PUBLIC_VRTX_CLIENT_SECRET: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_SECRET }}
+          EXPO_PUBLIC_VRTX_ENVIRONMENT: SANDBOX
+          VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -192,7 +268,7 @@ jobs:
           fi
           response=$(curl -sS --fail-with-body \
             -H "X-API-KEY: ${APPETIZE_TOKEN}" \
-            --form "file=@example/android/app/build/outputs/apk/release/app-release.apk" \
+            --form "file=@example/android/app/build/outputs/apk/preview/app-preview.apk" \
             --form "platform=android" \
             "https://api.appetize.io/v1/apps")
           public_url=$(jq -r '.publicURL // empty' <<<"${response}")
@@ -250,3 +326,4 @@ jobs:
         shell: bash
         run: |
           [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ] && rm -f "${GOOGLE_APPLICATION_CREDENTIALS}" || true
+          rm -f "$GITHUB_WORKSPACE/example/android/app/release.keystore"
