@@ -10,7 +10,6 @@ import expo.modules.kotlin.exception.CodedException
 import com.facebook.react.common.assets.ReactFontManager
 import org.json.JSONObject
 import sa.vrtx.public.Vrtx
-import sa.vrtx.public.error.SecurityVerificationError
 import sa.vrtx.public.configuration.DesignOption
 import sa.vrtx.public.configuration.Environment
 import sa.vrtx.public.configuration.Language
@@ -133,10 +132,7 @@ class VrtxSdkModule : Module() {
             sendEvent("onSuccess")
           },
           onError = { error ->
-            val threatCode = (error as? SecurityVerificationError)?.threatCode
-            val errorMessage = error.message?.let { message ->
-              threatCode?.let { code -> "$message ($code)" } ?: message
-            } ?: "Unknown error"
+            val errorMessage = error.message ?: "Unknown error"
             promise.reject(CodedException("VRX_ERROR", errorMessage, null))
             sendEvent("onError", mapOf("code" to "VRX_ERROR", "message" to errorMessage))
           },
