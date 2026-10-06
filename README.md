@@ -281,3 +281,16 @@ For credentials, license keys, and integration help, contact your Vrtx account m
 ## License
 
 Licensed under the Apache License, Version 2.0. Copyright (C) 2026 vrtx fintech.
+
+## Code scanning
+
+The checked-in CodeQL workflow scans GitHub Actions and JavaScript/TypeScript
+on every pull request to `main`, including dependency updates, every push to
+`main`, and weekly. It publishes the `Analyze (actions)` and
+`Analyze (javascript-typescript)` checks required by branch protection. No
+package credentials or application build are required for these languages.
+
+Use GitHub’s [advanced setup procedure](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configuring-advanced-setup-for-code-scanning)
+when switching from default setup so one configuration owns these analyses.
+The explicit pull-request trigger addresses dependency PRs whose default
+setup analyses were never scheduled. Required security checks stay enabled.
