@@ -294,3 +294,12 @@ Use GitHub’s [advanced setup procedure](https://docs.github.com/en/code-securi
 when switching from default setup so one configuration owns these analyses.
 The explicit pull-request trigger addresses dependency PRs whose default
 setup analyses were never scheduled. Required security checks stay enabled.
+
+## Development runtime compatibility
+
+The Expo SDK 57 development and example toolchain uses React Native 0.86
+and React 19.2. Update React Native, React and their types together with a
+supported stable Expo SDK upgrade; do not adopt a newer runtime line ahead
+of that SDK. Dependabot holds these incompatible lines while continuing
+compatible package and patch updates. See the [official Expo compatibility
+table](https://docs.expo.dev/versions/latest/).
