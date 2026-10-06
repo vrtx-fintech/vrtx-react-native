@@ -7,6 +7,16 @@ updates:
       include: 'scope'
     schedule:
       interval: weekly
+    # Expo SDK 57 supports React Native 0.86 and React 19.2. Keep newer
+    # runtime lines for a separately validated stable Expo SDK migration.
+    # https://docs.expo.dev/versions/latest/
+    ignore:
+      - dependency-name: react-native
+        versions: ['>=0.87.0']
+      - dependency-name: react
+        versions: ['>=19.3.0']
+      - dependency-name: '@types/react'
+        versions: ['>=19.3.0']
     groups:
       minor-and-patch:
         patterns:
@@ -22,6 +32,16 @@ updates:
       include: 'scope'
     schedule:
       interval: weekly
+    # Expo SDK 57 supports React Native 0.86 and React 19.2. Keep newer
+    # runtime lines for a separately validated stable Expo SDK migration.
+    # https://docs.expo.dev/versions/latest/
+    ignore:
+      - dependency-name: react-native
+        versions: ['>=0.87.0']
+      - dependency-name: react
+        versions: ['>=19.3.0']
+      - dependency-name: '@types/react'
+        versions: ['>=19.3.0']
     groups:
       minor-and-patch:
         patterns:

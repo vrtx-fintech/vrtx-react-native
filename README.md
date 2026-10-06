@@ -281,3 +281,12 @@ For credentials, license keys, and integration help, contact your Vrtx account m
 ## License
 
 Licensed under the Apache License, Version 2.0. Copyright (C) 2026 vrtx fintech.
+
+## Development runtime compatibility
+
+The Expo SDK 57 development and example toolchain uses React Native 0.86
+and React 19.2. Update React Native, React and their types together with a
+supported stable Expo SDK upgrade; do not adopt a newer runtime line ahead
+of that SDK. Dependabot holds these incompatible lines while continuing
+compatible package and patch updates. See the [official Expo compatibility
+table](https://docs.expo.dev/versions/latest/).
