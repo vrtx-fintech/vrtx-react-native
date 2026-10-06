@@ -303,3 +303,13 @@ supported stable Expo SDK upgrade; do not adopt a newer runtime line ahead
 of that SDK. Dependabot holds these incompatible lines while continuing
 compatible package and patch updates. See the [official Expo compatibility
 table](https://docs.expo.dev/versions/latest/).
+
+## Dependency maintenance
+
+Dependabot updates the root and example npm manifests, Android Gradle
+dependencies and GitHub Actions. The iOS bridge uses a CocoaPods podspec,
+not a Swift Package Manager manifest. It has no `Package.swift`, so a Swift
+Dependabot updater cannot resolve dependencies in `ios/`. Review the native
+`VRTX` pod pin when adopting a published iOS SDK release and validate it
+through the normal iOS example build. See the [official supported ecosystems
+and manifests](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories).

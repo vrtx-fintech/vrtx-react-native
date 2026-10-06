@@ -79,18 +79,3 @@ updates:
         update-types:
           - minor
           - patch
-
-  - package-ecosystem: swift
-    directory: /ios
-    commit-message:
-      prefix: 'chore'
-      include: 'scope'
-    schedule:
-      interval: weekly
-    groups:
-      minor-and-patch:
-        patterns:
-          - '*'
-        update-types:
-          - minor
-          - patch
