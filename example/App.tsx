@@ -75,31 +75,85 @@ type EnglishFont = (typeof englishFonts)[number]['value'];
 type ArabicFont = (typeof arabicFonts)[number]['value'];
 
 const themeOptions: VrtxThemeOptions = {
-  cardImage: 'https://example.com/card.png',
-  brandLogo: 'https://example.com/logo.png',
   brandName: 'Atlas Pay',
   colors: {
-    allBrands: { primary: '#377DFF', buttonLabel: '#FFFFFF' },
+    allBrands: { primary: '#7C3AED', buttonLabel: '#FFFFFF' },
     labels: {
-      primary: '#12233D',
-      secondary: '#60708A',
-      tertiary: '#8B9AB2',
-      quaternary: '#B8C4D6',
+      primary: '#24113F',
+      secondary: '#6D5A84',
+      tertiary: '#9B89B0',
+      quaternary: '#C5B8D2',
     },
     fills: {
-      primary: '#EAF3FF',
-      secondary: '#DCEAFF',
-      tertiary: '#C5D9F5',
-      quaternary: '#ADC8EC',
-      vibrant: { secondary: '#4DE3D1' },
+      primary: '#F0E7FF',
+      secondary: '#E4D4FF',
+      tertiary: '#CEB6F4',
+      quaternary: '#B99BE7',
+      vibrant: { secondary: '#A78BFA' },
     },
-    backgrounds: { primary: '#F4F8FF', secondary: '#F7FAFF' },
-    backgroundsGradient: { wb01: '#EAF3FF', wb02: '#E7F5F6' },
-    accents: { red: '#E05252', green: '#2E9B67', greenBg: '#E1F5EA' },
+    backgrounds: { primary: '#FBF9FF', secondary: '#F6F0FF' },
+    backgroundsGradient: { wb01: '#F0E7FF', wb02: '#E9DFFF' },
+    accents: { red: '#D94B71', green: '#2E9B67', greenBg: '#E1F5EA' },
   },
   spacing: { x0: 0, xxs: 2, xs: 4, sm: 8, md: 12, ml: 16, lg: 20 },
   radius: { s: 6, sm: 8, md: 12, ml: 16, lg: 20, xl: 24, full: 999, huge: 64 },
 };
+
+const appTheme = createAppTheme(themeOptions);
+
+function createAppTheme(theme: VrtxThemeOptions) {
+  const colors = theme.colors ?? {};
+  const labels = colors.labels ?? {};
+  const fills = colors.fills ?? {};
+  const backgrounds = colors.backgrounds ?? {};
+  const spacing = theme.spacing ?? {};
+  const radius = theme.radius ?? {};
+
+  return {
+    light: {
+      background: backgrounds.primary ?? '#FBF9FF',
+      surface: backgrounds.secondary ?? '#F6F0FF',
+      field: backgrounds.primary ?? '#FBF9FF',
+      preview: fills.primary ?? '#F0E7FF',
+      border: fills.tertiary ?? '#CEB6F4',
+      primary: colors.allBrands?.primary ?? '#7C3AED',
+      buttonLabel: colors.allBrands?.buttonLabel ?? '#FFFFFF',
+      textPrimary: labels.primary ?? '#24113F',
+      textSecondary: labels.secondary ?? '#6D5A84',
+      textTertiary: labels.tertiary ?? '#9B89B0',
+      activeFill: fills.secondary ?? '#E4D4FF',
+      vibrant: fills.vibrant?.secondary ?? '#A78BFA',
+    },
+    dark: {
+      background: '#170B2B',
+      surface: '#24113F',
+      field: '#321A50',
+      preview: '#3A1E5D',
+      border: '#5D3A7C',
+      primary: colors.allBrands?.primary ?? '#7C3AED',
+      buttonLabel: colors.allBrands?.buttonLabel ?? '#FFFFFF',
+      textPrimary: '#FBF9FF',
+      textSecondary: '#D7C8E6',
+      textTertiary: '#B9A5CC',
+      activeFill: '#4A286A',
+      vibrant: '#B69AFB',
+    },
+    spacing: {
+      xs: spacing.xs ?? 4,
+      sm: spacing.sm ?? 8,
+      md: spacing.md ?? 12,
+      ml: spacing.ml ?? 16,
+      lg: spacing.lg ?? 20,
+    },
+    radius: {
+      sm: radius.sm ?? 8,
+      md: radius.md ?? 12,
+      lg: radius.lg ?? 20,
+      xl: radius.xl ?? 24,
+      full: radius.full ?? 999,
+    },
+  };
+}
 
 export default function App() {
   const sdkStateRef = useRef<'idle' | 'launching' | 'open'>('idle');
@@ -123,13 +177,14 @@ export default function App() {
     const successSub = onSuccess(() => {
       sdkStateRef.current = 'open';
       setIsSdkBusy(false);
-      console.log('Vrtx screen is open!');
     });
 
     const errorSub = onError((err) => {
+      // Both native bridges reject setup AND emit onError for launch failures.
+      // The catch below owns those errors; events handle failures after opening.
+      if (sdkStateRef.current !== 'open') return;
       sdkStateRef.current = 'idle';
       setIsSdkBusy(false);
-      console.error('Vrtx error:', err.code, err.message);
       Alert.alert('Vrtx Error', err.message);
     });
 
@@ -172,12 +227,13 @@ export default function App() {
         externalReference,
         theme: themeOptions,
       });
-      console.log('Vrtx SDK launched successfully');
-    } catch (error: any) {
+    } catch (error: unknown) {
       sdkStateRef.current = 'idle';
       setIsSdkBusy(false);
-      console.error('Vrtx launch failed:', error);
-      Alert.alert('Error', error.message);
+      Alert.alert(
+        'Vrtx Error',
+        error instanceof Error ? error.message : 'Unable to open the SDK.',
+      );
     }
   };
 
@@ -189,7 +245,9 @@ export default function App() {
       <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
         <StatusBar
           barStyle={isDark ? 'light-content' : 'dark-content'}
-          backgroundColor={isDark ? '#111217' : '#ffffff'}
+          backgroundColor={
+            isDark ? appTheme.dark.background : appTheme.light.background
+          }
         />
 
         <View style={styles.hero}>
@@ -315,7 +373,9 @@ export default function App() {
         >
           {isSdkBusy && (
             <ActivityIndicator
-              color={isDark ? '#111217' : '#ffffff'}
+              color={
+                isDark ? appTheme.dark.buttonLabel : appTheme.light.buttonLabel
+              }
               size="small"
               style={styles.primaryButtonLoader}
             />
@@ -538,62 +598,63 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 20,
-    paddingBottom: 18,
+    backgroundColor: appTheme.light.background,
+    paddingHorizontal: appTheme.spacing.lg,
+    paddingBottom:
+      appTheme.spacing.md + appTheme.spacing.xs + appTheme.spacing.sm,
   },
   containerDark: {
-    backgroundColor: '#111217',
+    backgroundColor: appTheme.dark.background,
   },
   hero: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 24,
+    paddingTop: appTheme.spacing.lg,
   },
   preview: {
     width: 200,
     height: 200,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f8',
-    marginBottom: 52,
+    borderRadius: appTheme.radius.xl,
+    backgroundColor: appTheme.light.preview,
+    marginBottom: appTheme.spacing.lg * 2 + appTheme.spacing.md,
   },
   previewDark: {
-    backgroundColor: '#25272f',
+    backgroundColor: appTheme.dark.preview,
   },
   copy: {
     alignItems: 'center',
   },
   title: {
-    color: '#0c0c0f',
+    color: appTheme.light.textPrimary,
     fontSize: 27,
     fontWeight: '700',
     lineHeight: 34,
   },
   titleDark: {
-    color: '#ffffff',
+    color: appTheme.dark.textPrimary,
   },
   subtitle: {
-    color: '#8b8d95',
+    color: appTheme.light.textTertiary,
     fontSize: 15,
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: appTheme.spacing.sm + appTheme.spacing.xs / 2,
   },
   subtitleDark: {
-    color: '#b8bac3',
+    color: appTheme.dark.textSecondary,
   },
   primaryButton: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
     height: 46,
-    borderRadius: 23,
-    backgroundColor: '#050505',
-    marginBottom: 8,
-    transform: [{ translateY: -60 }],
+    borderRadius: appTheme.radius.full,
+    backgroundColor: appTheme.light.primary,
+    marginBottom: appTheme.spacing.sm,
+    transform: [{ translateY: -(appTheme.spacing.lg * 3) }],
   },
   primaryButtonDark: {
-    backgroundColor: '#ffffff',
+    backgroundColor: appTheme.dark.primary,
   },
   primaryButtonPressed: {
     opacity: 0.82,
@@ -602,35 +663,35 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   primaryButtonLoader: {
-    marginRight: 8,
+    marginRight: appTheme.spacing.sm,
   },
   primaryButtonText: {
-    color: '#ffffff',
+    color: appTheme.light.buttonLabel,
     fontSize: 14,
     fontWeight: '600',
   },
   primaryButtonTextDark: {
-    color: '#111217',
+    color: appTheme.dark.buttonLabel,
   },
   controls: {
-    backgroundColor: '#f7f7fb',
-    borderRadius: 20,
-    marginBottom: 76,
-    paddingHorizontal: 18,
+    backgroundColor: appTheme.light.surface,
+    borderRadius: appTheme.radius.xl,
+    marginBottom: appTheme.spacing.lg * 3 + appTheme.spacing.xs,
+    paddingHorizontal: appTheme.spacing.ml,
   },
   controlsDark: {
-    backgroundColor: '#1c1e25',
+    backgroundColor: appTheme.dark.surface,
   },
   controlRow: {
-    minHeight: 64,
-    borderBottomColor: '#e5e6ec',
+    minHeight: appTheme.spacing.lg * 3 + appTheme.spacing.md,
+    borderBottomColor: appTheme.light.border,
     borderBottomWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   controlRowDark: {
-    borderBottomColor: '#343741',
+    borderBottomColor: appTheme.dark.border,
   },
   controlRowRtl: {
     flexDirection: 'row-reverse',
@@ -639,12 +700,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   controlLabel: {
-    color: '#111217',
+    color: appTheme.light.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   controlLabelDark: {
-    color: '#ffffff',
+    color: appTheme.dark.textPrimary,
   },
   textRtl: {
     textAlign: 'right',
@@ -652,45 +713,46 @@ const styles = StyleSheet.create({
   segmentGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: appTheme.spacing.sm + appTheme.spacing.xs / 2,
   },
   segmentLabel: {
-    color: '#7b7d87',
+    color: appTheme.light.textSecondary,
     fontSize: 15,
   },
   segmentLabelDark: {
-    color: '#b8bac3',
+    color: appTheme.dark.textSecondary,
   },
   segmentLabelActive: {
-    color: '#111217',
+    color: appTheme.light.textPrimary,
     fontWeight: '600',
   },
   switchTrack: {
     width: 54,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#e1e2e7',
+    borderRadius: appTheme.radius.full,
+    backgroundColor: appTheme.light.activeFill,
     padding: 4,
     justifyContent: 'center',
   },
   switchTrackDark: {
-    backgroundColor: '#343741',
+    backgroundColor: appTheme.dark.border,
   },
   switchThumb: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
+    borderRadius: appTheme.radius.md,
+    backgroundColor: appTheme.light.background,
   },
   switchThumbRight: {
     alignSelf: 'flex-end',
+    backgroundColor: appTheme.light.vibrant,
   },
   selectValue: {
-    color: '#111217',
+    color: appTheme.light.textPrimary,
     fontSize: 15,
   },
   selectValueDark: {
-    color: '#ffffff',
+    color: appTheme.dark.textPrimary,
   },
   dropdown: {
     alignItems: 'flex-end',
@@ -698,31 +760,31 @@ const styles = StyleSheet.create({
   dropdownTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: appTheme.spacing.xs + appTheme.spacing.xs / 2,
     minHeight: 36,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 12,
+    borderRadius: appTheme.radius.md,
+    backgroundColor: appTheme.light.background,
+    paddingHorizontal: appTheme.spacing.md,
   },
   dropdownTriggerDark: {
-    backgroundColor: '#292c35',
+    backgroundColor: appTheme.dark.field,
   },
   externalReferenceInput: {
     width: 196,
     minHeight: 36,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    color: '#111217',
+    borderRadius: appTheme.radius.md,
+    backgroundColor: appTheme.light.background,
+    color: appTheme.light.textPrimary,
     fontSize: 14,
-    paddingHorizontal: 12,
+    paddingHorizontal: appTheme.spacing.md,
     textAlign: 'right',
   },
   externalReferenceInputDark: {
-    backgroundColor: '#292c35',
-    color: '#ffffff',
+    backgroundColor: appTheme.dark.field,
+    color: appTheme.dark.textPrimary,
   },
   chevron: {
-    color: '#7b7d87',
+    color: appTheme.light.textSecondary,
     fontSize: 12,
   },
   dropdownModal: {
@@ -731,10 +793,10 @@ const styles = StyleSheet.create({
   dropdownMenu: {
     position: 'absolute',
     width: DROPDOWN_MENU_WIDTH,
-    borderRadius: 12,
-    backgroundColor: '#ffffff',
-    paddingVertical: 6,
-    borderColor: '#e5e6ec',
+    borderRadius: appTheme.radius.md,
+    backgroundColor: appTheme.light.background,
+    paddingVertical: appTheme.spacing.xs + 2,
+    borderColor: appTheme.light.border,
     borderWidth: 1,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 8 },
@@ -752,19 +814,19 @@ const styles = StyleSheet.create({
   dropdownOption: {
     minHeight: 40,
     justifyContent: 'center',
-    paddingHorizontal: 12,
-    marginHorizontal: 6,
-    borderRadius: 8,
+    paddingHorizontal: appTheme.spacing.md,
+    marginHorizontal: appTheme.spacing.xs + 2,
+    borderRadius: appTheme.radius.sm,
   },
   dropdownOptionActive: {
-    backgroundColor: '#f1f2f6',
+    backgroundColor: appTheme.light.activeFill,
   },
   dropdownOptionText: {
-    color: '#7b7d87',
+    color: appTheme.light.textSecondary,
     fontSize: 14,
   },
   dropdownOptionTextActive: {
-    color: '#111217',
+    color: appTheme.light.textPrimary,
     fontWeight: '600',
   },
 });

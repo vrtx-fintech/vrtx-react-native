@@ -5,10 +5,12 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
-    "android:dev": "bash ./scripts/android-dev.sh",
-    "ios": "expo run:ios",
-    "postinstall": "npx expo prebuild"
+    "android": "node ./scripts/native.js android",
+    "android:dev": "npm run android --",
+    "ios": "node ./scripts/native.js ios",
+    "postinstall": "npm run prebuild",
+    "ios:dev": "npm run ios --",
+    "prebuild": "node ./scripts/native.js prebuild"
   },
   "dependencies": {
     "babel-preset-expo": "~57.0.11",
@@ -18,7 +20,7 @@
     "expo-splash-screen": "~57.0.8",
     "react": "19.2.8",
     "react-native": "0.86.3",
-    "vrtx-react-native": "^0.1.98"
+    "vrtx-react-native": "^0.1.104"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",

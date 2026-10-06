@@ -1,8 +1,27 @@
 name: App Distribution
+run-name: "Demo · ${{ inputs.pr_number && format('PR #{0}', inputs.pr_number) || github.ref_name }} · ${{ inputs.platform }} · ${{ inputs.dry_run && 'build only' || 'distribute' }}"
 
 on:
   workflow_dispatch:
     inputs:
+      pr_number:
+        description: Optional open PR number. Leave empty to build the selected branch (main creates a release).
+        type: string
+        default: ''
+      dry_run:
+        description: Build downloadable artifacts only; skip uploads, announcements, and tags.
+        type: boolean
+        default: false
+      platform:
+        description: Demo platforms to build and distribute.
+        type: choice
+        required: true
+        default: both
+        options: [both, android, ios]
+      testflight:
+        description: Also archive and upload the iOS demo to TestFlight (requires signing secrets).
+        type: boolean
+        default: false
       bump:
         description: App version bump type.
         type: choice
@@ -10,57 +29,118 @@ on:
         default: patch
         options: [patch, minor, major]
       release_notes:
-        description: Release notes for Firebase App Distribution.
+        description: Shared release notes for the demo tag and distribution.
         type: string
         required: true
         default: Manual release
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: demo-${{ inputs.pr_number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   prepare:
     name: Resolve app version
     runs-on: ubuntu-24.04
+    environment: sandbox
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       version: ${{ steps.version.outputs.version }}
       version_code: ${{ steps.version.outputs.version_code }}
+      sha: ${{ steps.source.outputs.sha }}
+      preview: ${{ steps.source.outputs.preview }}
+      source_url: ${{ steps.source.outputs.source_url }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - id: version
+      - name: Resolve requested PR or branch
+        id: source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: bash scripts/resolve-demo-source.sh
+
+      - name: Validate inputs
+        env:
+          PREVIEW: ${{ steps.source.outputs.preview }}
+          PLATFORM: ${{ inputs.platform }}
+          TESTFLIGHT: ${{ inputs.testflight }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          PUBLIC_DEMO_CLIENT_ID: ${{ vars.PUBLIC_DEMO_CLIENT_ID }}
+          PUBLIC_DEMO_CLIENT_SECRET: ${{ vars.PUBLIC_DEMO_CLIENT_SECRET }}
+        run: |
+          if [[ "$TESTFLIGHT" == true && ( "$PREVIEW" == true || "$PLATFORM" == android ) ]]; then
+            echo '::error::TestFlight requires a main release including iOS.'
+            exit 1
+          fi
+          if [[ "$DRY_RUN" != true && ( -z "$PUBLIC_DEMO_CLIENT_ID" || -z "$PUBLIC_DEMO_CLIENT_SECRET" ) ]]; then
+            echo '::error::Set PUBLIC_DEMO_CLIENT_ID and PUBLIC_DEMO_CLIENT_SECRET Actions variables to sandbox credentials approved for public sharing, or use dry_run.'
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Compute next demo version
+        id: version
         env:
           BUMP: ${{ inputs.bump }}
-        run: |
-          latest=$(git tag --list 'demo-*' --sort=-v:refname | grep -E '^demo-[0-9]+\.[0-9]+\.[0-9]+$' | head -n1 || true)
-          current=${latest#demo-}
-          current=${current:-1.0.0}
-          IFS=. read -r major minor patch <<< "$current"
-          case "$BUMP" in
-            patch) patch=$((patch + 1)) ;;
-            minor) minor=$((minor + 1)); patch=0 ;;
-            major) major=$((major + 1)); minor=0; patch=0 ;;
-          esac
-          version="$major.$minor.$patch"
-          version_code=$((major * 1000000 + minor * 1000 + patch))
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "version_code=$version_code" >> "$GITHUB_OUTPUT"
+          PREVIEW: ${{ steps.source.outputs.preview }}
+        run: node scripts/demo-version.cjs
 
-  distribute:
-    name: Build & Distribute
+  tag:
+    name: Reserve release version
     needs: prepare
+    if: ${{ github.ref == 'refs/heads/main' && inputs.pr_number == '' && !inputs.dry_run }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+      - name: Reserve demo tag
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_NOTES: ${{ inputs.release_notes }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          printf '%s\n' "$RELEASE_NOTES" > "$RUNNER_TEMP/demo-release-notes.txt"
+          git tag -a "demo-$VERSION" "$GITHUB_SHA" -F "$RUNNER_TEMP/demo-release-notes.txt"
+          git push origin "refs/tags/demo-$VERSION"
+
+  android:
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && (needs.tag.result == 'success' || needs.tag.result == 'skipped') && inputs.platform != 'ios' }}
+    name: Android demo
+    needs: [prepare, tag]
     runs-on: ubuntu-24.04
     environment: sandbox
     timeout-minutes: 30
+    env:
+      NODE_ENV: production
+      EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_VRTX_CLIENT_ID: ${{ vars.PUBLIC_DEMO_CLIENT_ID }}
+      EXPO_PUBLIC_VRTX_CLIENT_SECRET: ${{ vars.PUBLIC_DEMO_CLIENT_SECRET }}
+      EXPO_PUBLIC_VRTX_ENVIRONMENT: SANDBOX
+    outputs:
+      artifact_url: ${{ steps.apk-artifact.outputs.artifact-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
 
       - name: Set up Node.js 24
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -70,23 +150,99 @@ jobs:
           cache-dependency-path: example/package-lock.json
 
       - name: Install example dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts --include=dev
         working-directory: example
 
       - name: Set release version
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
           VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
-        run: |
-          node -e 'const fs=require("fs"); const p="app.json"; const a=JSON.parse(fs.readFileSync(p)); a.expo.version=process.env.VERSION; a.expo.android.versionCode=Number(process.env.VERSION_CODE); fs.writeFileSync(p, `${JSON.stringify(a, null, 2)}\n`);'
-        working-directory: example
+        run: node scripts/demo-version.cjs apply
 
       - name: Generate Android project
-        run: npx expo prebuild --platform android --no-install --clean
+        run: npm run prebuild -- --platform android --no-install
         working-directory: example
 
-      - name: Configure FreeRASP Android dependencies
-        run: bash scripts/android.sh --configure-only example/android
+      - name: Configure Android release signing
+        if: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run }}
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD VRTX_CERT_HASH; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set."
+              exit 1
+            fi
+          done
+
+          keystore="$GITHUB_WORKSPACE/example/android/app/release.keystore"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          test -s "$keystore"
+
+          effective_store_password="$ANDROID_KEYSTORE_PASSWORD"
+          effective_key_password="$ANDROID_KEY_PASSWORD"
+          if ! cert_details=$(keytool -list -v \
+            -keystore "$keystore" \
+            -storepass "$effective_store_password" \
+            -alias "$ANDROID_KEY_ALIAS" 2>&1); then
+            if [ "$ANDROID_KEY_PASSWORD" != "$ANDROID_KEYSTORE_PASSWORD" ] && \
+              swapped_cert_details=$(keytool -list -v \
+                -keystore "$keystore" \
+                -storepass "$ANDROID_KEY_PASSWORD" \
+                -alias "$ANDROID_KEY_ALIAS" 2>&1); then
+              effective_store_password="$ANDROID_KEY_PASSWORD"
+              effective_key_password="$ANDROID_KEYSTORE_PASSWORD"
+              cert_details="$swapped_cert_details"
+              echo "::warning::ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_PASSWORD appear to be swapped; using the values that unlock the keystore."
+            else
+              diagnostic=$(printf "%s" "$cert_details" | tr "\\n" " ")
+              echo "::error::Unable to read the signing certificate from ANDROID_KEYSTORE_BASE64. ANDROID_KEYSTORE_PASSWORD does not unlock this keystore."
+              echo "::error::keytool diagnostic:" "$diagnostic"
+              exit 1
+            fi
+          fi
+          {
+            printf "CI_ANDROID_KEYSTORE_PASSWORD=%s\n" "$effective_store_password"
+            printf "CI_ANDROID_KEY_PASSWORD=%s\n" "$effective_key_password"
+          } >> "$GITHUB_ENV"
+          cert_hex=$(printf '%s\n' "$cert_details" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ':')
+          if [ -z "$cert_hex" ]; then
+            echo "::error::The signing keystore did not expose a SHA-256 certificate fingerprint."
+            exit 1
+          fi
+          actual_cert_hash=$(printf '%s' "$cert_hex" | xxd -r -p | base64 -w0)
+          expected_cert_hashes=$(printf '%s' "$VRTX_CERT_HASH" | tr ',' '\n' | sed 's/[[:space:]]//g')
+          if ! grep -Fxq "$actual_cert_hash" <<< "$expected_cert_hashes"; then
+            echo "::error::VRTX_CERT_HASH does not match the certificate in ANDROID_KEYSTORE_BASE64."
+            exit 1
+          fi
+
+          cat >> "$GITHUB_WORKSPACE/example/android/app/build.gradle" <<'EOF'
+
+          // CI release and Appetize preview signing. The keystore is injected by the
+          // distribution workflow and is never committed to the repository.
+          android {
+              signingConfigs {
+                  ciRelease {
+                      storeFile file("release.keystore")
+                      storePassword System.getenv("CI_ANDROID_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                      keyPassword System.getenv("CI_ANDROID_KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.ciRelease
+                  }
+              }
+          }
+          EOF
 
       - name: Set up JDK 21
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
@@ -105,19 +261,34 @@ jobs:
         run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
         working-directory: example/android
 
-      - name: Build signed release APK
-        run: ./gradlew app:assembleRelease --refresh-dependencies
+      - name: Build release APK
+        run: ./gradlew app:assembleRelease --build-cache
         working-directory: example/android
         env:
-          NODE_ENV: production
-          EXPO_PUBLIC_VRTX_CLIENT_ID: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_ID }}
-          EXPO_PUBLIC_VRTX_CLIENT_SECRET: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_SECRET }}
-          EXPO_PUBLIC_VRTX_ENVIRONMENT: SANDBOX
-          VRTX_CERT_HASH: ${{ secrets.VRTX_CERT_HASH }}
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          VRTX_CERT_HASH: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run && secrets.VRTX_CERT_HASH || '' }}
+          ANDROID_KEY_ALIAS: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run && secrets.ANDROID_KEY_ALIAS || '' }}
+
+      - name: Build Appetize preview APK
+        if: ${{ !inputs.dry_run }}
+        working-directory: example/android
+        run: |
+          cat >> app/build.gradle <<'EOF'
+          android {
+            buildTypes {
+              preview {
+                initWith release
+                matchingFallbacks = ['release']
+                debuggable true
+                minifyEnabled false
+                shrinkResources false
+                signingConfig signingConfigs.debug
+              }
+            }
+          }
+          EOF
+          ./gradlew app:assemblePreview --build-cache
+        env:
+          ANDROID_KEY_ALIAS: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run && secrets.ANDROID_KEY_ALIAS || '' }}
 
       # Keep the shipped APK downloadable from the run page (device testing
       # and binary inspection) independent of Firebase App Distribution.
@@ -126,15 +297,19 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: apk-sandbox-react-native-${{ needs.prepare.outputs.version }}
-          path: example/android/app/build/outputs/apk/release/app-release.apk
+          path: |
+            example/android/app/build/outputs/apk/release/app-release.apk
+            example/android/app/build/outputs/apk/preview/app-preview.apk
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
 
       - name: Install Firebase CLI
+        if: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run }}
         run: npm install -g firebase-tools@15.12.0
 
       - name: Authenticate to Firebase
+        if: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run }}
         shell: bash
         env:
           FIREBASE_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
@@ -161,6 +336,7 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$key_file" >> "$GITHUB_ENV"
 
       - name: Distribute APK to Firebase
+        if: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run }}
         shell: bash
         env:
           APP_ID: ${{ secrets.SANDBOX_FIREBASE_APP_ID }}
@@ -177,76 +353,223 @@ jobs:
             --release-notes-file "$notes_file" \
             --testers-file "$testers_file"
 
-      # Direct POST instead of the github-action-appetize wrapper so the
-      # publicURL can be included in the Slack release announcement.
-      - name: Upload preview to Appetize.io
-        id: appetize
-        shell: bash
-        env:
-          APPETIZE_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [ -z "${APPETIZE_TOKEN}" ]; then
-            echo "::error::APPETIZE_API_TOKEN is not set."
-            exit 1
-          fi
-          response=$(curl -sS --fail-with-body \
-            -H "X-API-KEY: ${APPETIZE_TOKEN}" \
-            --form "file=@example/android/app/build/outputs/apk/release/app-release.apk" \
-            --form "platform=android" \
-            "https://api.appetize.io/v1/apps")
-          public_url=$(jq -r '.publicURL // empty' <<<"${response}")
-          if [ -z "${public_url}" ]; then
-            echo "::error::Appetize upload succeeded but no publicURL returned. Response:"
-            echo "${response}"
-            exit 1
-          fi
-          echo "url=${public_url}" >> "${GITHUB_OUTPUT}"
-          echo "Appetize preview: ${public_url}"
-
-      - name: Notify Slack
-        shell: bash
-        env:
-          WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          APPETIZE_URL: ${{ steps.appetize.outputs.url }}
-          APK_ARTIFACT_URL: ${{ steps.apk-artifact.outputs.artifact-url }}
-          NOTES: ${{ inputs.release_notes }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-          CLIENT_ID: ${{ secrets.EXPO_PUBLIC_VRTX_CLIENT_ID }}
-        run: |
-          set -euo pipefail
-          if [ -z "${WEBHOOK}" ]; then
-            echo "::warning::SLACK_WEBHOOK_URL is not set; skipping release announcement."
-            exit 0
-          fi
-          title="React Native Demo App ${VERSION} Available (sandbox · ${CLIENT_ID})"
-          context="Environment: sandbox · Client ID: ${CLIENT_ID} · <${APPETIZE_URL}|Appetize preview>"
-          if [ -n "${APK_ARTIFACT_URL}" ]; then
-            context="${context} · <${APK_ARTIFACT_URL}|APK (expires in 7d)>"
-          fi
-          payload=$(jq -n \
-            --arg title "${title}" \
-            --arg notes "${NOTES}" \
-            --arg context "${context}" \
-            '{
-              blocks: [
-                {type: "header", text: {type: "plain_text", text: $title}},
-                {type: "section", text: {type: "mrkdwn", text: $notes}},
-                {type: "context", elements: [{type: "mrkdwn", text: $context}]}
-              ]
-            }')
-          response=$(curl -sS --fail-with-body -X POST \
-            -H 'Content-Type: application/json' \
-            --data "${payload}" "${WEBHOOK}") || {
-            echo "::warning::Slack webhook curl failed: ${response}"
-            exit 0
-          }
-          if [ "${response}" != "ok" ]; then
-            echo "::warning::Slack webhook responded: ${response}"
-          fi
-
       - name: Clean up Firebase credentials
-        if: ${{ success() || failure() }}
+        if: ${{ always() }}
         shell: bash
         run: |
           [ -f "${GOOGLE_APPLICATION_CREDENTIALS}" ] && rm -f "${GOOGLE_APPLICATION_CREDENTIALS}" || true
+          rm -f "$GITHUB_WORKSPACE/example/android/app/release.keystore"
+
+  ios:
+    if: ${{ !cancelled() && needs.prepare.result == 'success' && (needs.tag.result == 'success' || needs.tag.result == 'skipped') && inputs.platform != 'android' }}
+    name: iOS demo
+    needs: [prepare, tag]
+    runs-on: macos-latest
+    environment: sandbox
+    timeout-minutes: 60
+    outputs:
+      artifact_url: ${{ steps.simulator-artifact.outputs.artifact-url }}
+      ipa_url: ${{ steps.ipa-artifact.outputs.artifact-url }}
+      testflight: ${{ steps.testflight.outcome }}
+    env:
+      NODE_ENV: production
+      EXPO_NO_DOTENV: '1'
+      EXPO_PUBLIC_VRTX_CLIENT_ID: ${{ vars.PUBLIC_DEMO_CLIENT_ID }}
+      EXPO_PUBLIC_VRTX_CLIENT_SECRET: ${{ vars.PUBLIC_DEMO_CLIENT_SECRET }}
+      EXPO_PUBLIC_VRTX_ENVIRONMENT: SANDBOX
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: example/package-lock.json
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: latest-stable
+
+      - name: Install example dependencies
+        run: npm ci --ignore-scripts --include=dev
+        working-directory: example
+
+      - name: Set release version
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
+        run: node scripts/demo-version.cjs apply
+
+      - name: Generate iOS project
+        run: npm run prebuild -- --platform ios --no-install
+        working-directory: example
+
+      - name: Install CocoaPods dependencies
+        run: pod install
+        working-directory: example/ios
+
+      - name: Build standalone simulator app
+        run: bash scripts/ios.sh
+
+      - name: Upload simulator artifact
+        id: simulator-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-simulator-sandbox-react-native-${{ needs.prepare.outputs.version }}
+          path: example/ios/build/demo/ios-simulator.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+      - name: Install iOS signing assets
+        if: ${{ inputs.testflight }}
+        run: bash scripts/ios-signing.sh
+        env:
+          IOS_DISTRIBUTION_CERT_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERT_BASE64 }}
+          IOS_DISTRIBUTION_CERT_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERT_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+      - name: Archive and export signed iOS app
+        if: ${{ inputs.testflight }}
+        run: |
+          xcodebuild -workspace example/ios/ReactNativeSandbox.xcworkspace \
+            -scheme ReactNativeSandbox -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/demo.xcarchive" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $RUNNER_TEMP/vrtx-ios-signing/build.keychain-db" \
+            COMPILER_INDEX_STORE_ENABLE=NO archive
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/demo.xcarchive" \
+            -exportPath "$RUNNER_TEMP/demo-ipa" \
+            -exportOptionsPlist "$RUNNER_TEMP/vrtx-ios-signing/ExportOptions.plist"
+
+      - name: Upload IPA artifact
+        id: ipa-artifact
+        if: ${{ inputs.testflight }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ipa-sandbox-react-native-${{ needs.prepare.outputs.version }}
+          path: ${{ runner.temp }}/demo-ipa/*.ipa
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+      - name: Upload to TestFlight
+        id: testflight
+        if: ${{ inputs.testflight && !inputs.dry_run }}
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+        run: |
+          ipas=("$RUNNER_TEMP/demo-ipa/"*.ipa)
+          [[ ${#ipas[@]} == 1 && -f "${ipas[0]}" ]]
+          bash scripts/upload-testflight.sh "${ipas[0]}"
+
+      - name: Clean up signing assets
+        if: ${{ always() && inputs.testflight }}
+        run: bash scripts/ios-signing.sh cleanup
+
+  previews:
+    name: Publish Appetize previews
+    if: ${{ !cancelled() && !inputs.dry_run && (needs.android.outputs.artifact_url != '' || needs.ios.outputs.artifact_url != '') }}
+    needs: [prepare, android, ios]
+    runs-on: ubuntu-24.04
+    environment: sandbox
+    outputs:
+      android_url: ${{ steps.upload.outputs.android_url }}
+      ios_url: ${{ steps.upload.outputs.ios_url }}
+    steps:
+      # Download data only. Do not checkout PR code or execute artifact contents
+      # on the runner that receives the Appetize API token.
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: '*-sandbox-react-native-${{ needs.prepare.outputs.version }}'
+          path: artifacts
+      - name: Upload previews
+        id: upload
+        env:
+          APPETIZE_TOKEN: ${{ secrets.APPETIZE_API_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          ANDROID_ARTIFACT: ${{ needs.android.outputs.artifact_url }}
+          IOS_ARTIFACT: ${{ needs.ios.outputs.artifact_url }}
+        run: |
+          : "${APPETIZE_TOKEN:?APPETIZE_API_TOKEN is not set}"
+          status=0
+          for platform in android ios; do
+            if [[ "$platform" == android ]]; then
+              [[ -n "$ANDROID_ARTIFACT" ]] || continue
+              file="artifacts/apk-sandbox-react-native-$VERSION/preview/app-preview.apk"
+            else
+              [[ -n "$IOS_ARTIFACT" ]] || continue
+              file="artifacts/ios-simulator-sandbox-react-native-$VERSION/ios-simulator.zip"
+            fi
+            if [[ ! -f "$file" ]]; then
+              echo "::error::Missing $platform preview artifact: $file"
+              status=1
+              continue
+            fi
+            if ! response=$(curl -sS --fail-with-body \
+              -H "X-API-KEY: $APPETIZE_TOKEN" \
+              --form "file=@$file" --form "platform=$platform" \
+              https://api.appetize.io/v1/apps); then
+              status=1
+              continue
+            fi
+            if ! url=$(jq -er '.publicURL | select(type == "string" and startswith("https://"))' <<< "$response"); then
+              echo "::error::Appetize returned no preview URL for $platform"
+              status=1
+              continue
+            fi
+            echo "${platform}_url=$url" >> "$GITHUB_OUTPUT"
+          done
+          exit "$status"
+
+  summary:
+    name: Demo release summary
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    needs: [prepare, android, ios, previews]
+    runs-on: ubuntu-24.04
+    environment: sandbox
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      PREVIEW: ${{ needs.prepare.outputs.preview }}
+      SOURCE_URL: ${{ needs.prepare.outputs.source_url }}
+      SOURCE_SHA: ${{ needs.prepare.outputs.sha }}
+      ANDROID_RESULT: ${{ needs.android.result }}
+      IOS_RESULT: ${{ needs.ios.result }}
+      ANDROID_PREVIEW: ${{ needs.previews.outputs.android_url }}
+      IOS_PREVIEW: ${{ needs.previews.outputs.ios_url }}
+      APK_URL: ${{ needs.android.outputs.artifact_url }}
+      SIMULATOR_URL: ${{ needs.ios.outputs.artifact_url }}
+      IPA_URL: ${{ needs.ios.outputs.ipa_url }}
+      TESTFLIGHT: ${{ needs.ios.outputs.testflight }}
+      PREVIEW_RESULT: ${{ needs.previews.result }}
+    steps:
+      - name: Summarize both platforms
+        run: |
+          {
+            printf '## React Native demo %s (sandbox)\n\n' "$VERSION"
+            printf 'Source: %s (%s) · PR/branch preview: %s\n\n' "$SOURCE_URL" "$SOURCE_SHA" "$PREVIEW"
+            printf '| Platform | Result | Preview | Artifact |\n| --- | --- | --- | --- |\n'
+            printf '| Android | %s | %s | %s |\n' "$ANDROID_RESULT" "$ANDROID_PREVIEW" "$APK_URL"
+            printf '| iOS | %s | %s | %s |\n' "$IOS_RESULT" "$IOS_PREVIEW" "$SIMULATOR_URL"
+            printf '\nTestFlight upload: %s (Apple processing/testing availability is separate).\n' "${TESTFLIGHT:-skipped}"
+            printf '\nAppetize upload: %s\n' "$PREVIEW_RESULT"
+            if [[ -n "$IPA_URL" ]]; then printf '\nIPA: %s\n' "$IPA_URL"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Slack
+        if: ${{ needs.prepare.outputs.preview != 'true' && !inputs.dry_run }}
+        env:
+          WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          [[ -n "$WEBHOOK" ]] || exit 0
+          message="React Native demo $VERSION (sandbox)
+          Android: $ANDROID_RESULT · iOS: $IOS_RESULT · TestFlight upload: ${TESTFLIGHT:-skipped}
+          $ANDROID_PREVIEW
+          $IOS_PREVIEW"
+          payload=$(jq -n --arg text "$message" '{text: $text}')
+          curl -fsS --max-time 15 -H 'Content-Type: application/json' \
+            --data "$payload" "$WEBHOOK" >/dev/null || echo '::warning::Slack announcement failed.'
