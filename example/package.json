@@ -23,7 +23,7 @@
     "vrtx-react-native": "^0.1.104"
   },
   "devDependencies": {
-    "@types/react": "~19.3.0",
+    "@types/react": "~19.2.18",
     "typescript": "~7.0.2"
   }
 }
