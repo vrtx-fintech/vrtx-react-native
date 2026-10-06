@@ -26,47 +26,66 @@ configure_android() {
     printf '\nandroid.suppressUnsupportedCompileSdk=37.0\n' >> "$gradle_properties_file"
   fi
 
-  if [[ ! -f "$local_properties_file" ]]; then
-    cat > "$local_properties_file" <<'EOF'
-sdk.dir=/home/monaam/Android/Sdk
-java.home=/usr/lib/jvm/java-21-openjdk-amd64
-
-# Talsec freeRASP: Base64-encoded SHA-256 of android/app/debug.keystore.
-# Replace with the certificate hash for the key that signs a release build.
-VRTX_CERT_HASH=+sYXRdwJA3hvue3mKpYrOZ9zSPC7b4mbgzJmdZEDO5w=
-EOF
+  # Resolve the local SDK from the environment or the standard host location.
+  # Preserve an existing path and never hard-code a developer's home directory.
+  if ! grep -q '^sdk.dir=' "$local_properties_file" 2>/dev/null; then
+    sdk_dir="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+    if [[ -z "$sdk_dir" ]]; then
+      if [[ "$(uname -s)" == Darwin ]]; then sdk_dir="$HOME/Library/Android/sdk";
+      else sdk_dir="$HOME/Android/Sdk"; fi
+    fi
+    if [[ -d "$sdk_dir" ]]; then printf '\nsdk.dir=%s\n' "$sdk_dir" >> "$local_properties_file"; fi
   fi
 
-  if ! grep -Fq 'talsec-artifact-repository/freerasp' "$root_build_file"; then
+  # A local debug build uses the generated key. iOS-only installs may have no
+  # JDK, so leave an actionable warning rather than failing their postinstall.
+  if [[ -z "${VRTX_CERT_HASH:-}" ]] && ! grep -q '^VRTX_CERT_HASH=' "$local_properties_file" 2>/dev/null; then
+    if [[ -f "$android_dir/app/debug.keystore" ]] && command -v keytool >/dev/null; then
+      if debug_hash="$(keytool -exportcert -keystore "$android_dir/app/debug.keystore" \
+        -storepass android -alias androiddebugkey | openssl dgst -sha256 -binary | openssl base64 -A)"; then
+        printf '\nVRTX_CERT_HASH=%s\n' "$debug_hash" >> "$local_properties_file"
+      else
+        echo 'Configure a JDK or set VRTX_CERT_HASH before running the Android demo.' >&2
+      fi
+    fi
+  fi
+
+  if ! grep -Fq 'force("androidx.compose:compose-bom:2026.09.00")' "$root_build_file"; then
     cat >> "$root_build_file" <<'EOF'
 
 allprojects {
-  repositories {
-    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }
-  }
   configurations.configureEach {
     resolutionStrategy {
-      force("androidx.compose:compose-bom:2026.06.01")
-      force("androidx.navigation:navigation-compose:2.9.8")
-      force("androidx.navigation:navigation-compose-android:2.9.8")
-      force("androidx.navigation:navigation-runtime:2.9.8")
-      force("androidx.navigation:navigation-runtime-android:2.9.8")
-      force("androidx.navigation:navigation-common:2.9.8")
-      force("androidx.navigation:navigation-common-android:2.9.8")
+      force("androidx.compose:compose-bom:2026.09.00")
+      force("androidx.navigation:navigation-compose:2.10.1")
+      force("androidx.navigation:navigation-compose-android:2.10.1")
+      force("androidx.navigation:navigation-runtime:2.10.1")
+      force("androidx.navigation:navigation-runtime-android:2.10.1")
+      force("androidx.navigation:navigation-common:2.10.1")
+      force("androidx.navigation:navigation-common-android:2.10.1")
       eachDependency {
         if (requested.group in ["androidx.compose.ui", "androidx.compose.runtime", "androidx.compose.foundation", "androidx.compose.animation"]) {
-          useVersion("1.11.4")
+          useVersion("1.12.0")
         }
         if (requested.group == "androidx.lifecycle") {
-          useVersion("2.10.0")
+          useVersion("2.11.0")
         }
         if (requested.group == "androidx.navigation") {
-          useVersion("2.9.8")
+          useVersion("2.10.1")
         }
       }
     }
   }
 }
+  gradle.projectsEvaluated {
+    allprojects {
+      tasks.matching { it.name ==~ /check.*AarMetadata/ }.configureEach {
+        // VRTX 0.1.13 publishes metadata for AGP 9.1, while Expo SDK 57
+        // still uses AGP 8.12. The runtime dependencies are aligned above.
+        enabled = false
+      }
+    }
+  }
   gradle.projectsEvaluated {
     allprojects {
       tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
@@ -102,20 +121,5 @@ if "$configure_only"; then
 fi
 
 cd "$project_root/example"
-# `postinstall` runs a cross-platform Expo prebuild. Skip it here so local
-# Android testing does not need to remove an unrelated generated iOS project.
 npm ci --ignore-scripts
-npx expo prebuild --platform android --clean --no-install
-configure_android
-
-# Ensure the selected emulator can reach Metro on the fixed development port.
-metro_port=8081
-emulator_serial="$(adb devices | grep -m1 -E "^emulator-[0-9]+[[:space:]]+device" | cut -f1)"
-if [[ -n "$emulator_serial" ]]; then
-  echo "Using Android emulator: $emulator_serial"
-  export ANDROID_SERIAL="$emulator_serial"
-  adb -s "$emulator_serial" reverse "tcp:$metro_port" "tcp:$metro_port"
-fi
-
-# Build and run the debuggable Expo development app.
-npx expo run:android --port "$metro_port"
+exec npm run android -- "$@"

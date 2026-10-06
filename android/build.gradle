@@ -5,7 +5,6 @@ plugins {
 }
 
 repositories {
-    maven { url 'https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp' }
     maven { url 'https://jitpack.io' }
     mavenCentral()
 }
@@ -13,33 +12,33 @@ repositories {
 group = 'sa.vrtx.reactnative'
 version = '0.1.0'
 
-// VRTX Android 0.1.10 publishes AndroidX artifacts that require AGP 9.1.
+// VRTX Android 0.1.13 publishes AndroidX artifacts that require AGP 9.1.
 // Expo SDK 57 uses AGP 8.12, so keep the dependency graph on the last AGP-compatible releases.
 configurations.configureEach {
   resolutionStrategy {
-    force 'androidx.compose:compose-bom:2026.06.01'
-    force 'androidx.navigation:navigation-compose:2.9.8'
-    force 'androidx.navigation:navigation-compose-android:2.9.8'
-    force 'androidx.navigation:navigation-runtime:2.9.8'
-    force 'androidx.navigation:navigation-runtime-android:2.9.8'
-    force 'androidx.navigation:navigation-common:2.9.8'
-    force 'androidx.navigation:navigation-common-android:2.9.8'
+    force 'androidx.compose:compose-bom:2026.09.00'
+    force 'androidx.navigation:navigation-compose:2.10.1'
+    force 'androidx.navigation:navigation-compose-android:2.10.1'
+    force 'androidx.navigation:navigation-runtime:2.10.1'
+    force 'androidx.navigation:navigation-runtime-android:2.10.1'
+    force 'androidx.navigation:navigation-common:2.10.1'
+    force 'androidx.navigation:navigation-common-android:2.10.1'
     eachDependency {
       if (requested.group in ['androidx.compose.ui', 'androidx.compose.runtime', 'androidx.compose.foundation', 'androidx.compose.animation']) {
-        useVersion '1.11.4'
+        useVersion '1.12.0'
       }
       if (requested.group == 'androidx.lifecycle') {
-        useVersion '2.10.0'
+        useVersion '2.11.0'
       }
       if (requested.group == 'androidx.navigation') {
-        useVersion '2.9.8'
+        useVersion '2.10.1'
       }
     }
   }
 }
 
 dependencies {
-    implementation 'sa.vrtx.sa:vrtx-android:0.1.10'
+    implementation 'sa.vrtx.sa:vrtx-android:0.1.15'
     implementation 'androidx.compose.ui:ui:1.6.8'
     implementation 'androidx.activity:activity-compose:1.9.0'
     implementation 'com.facebook.react:react-android'
