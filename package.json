@@ -33,7 +33,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "node api.js && expo-module build",
+    "build": "expo-module build",
     "clean": "expo-module clean",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
