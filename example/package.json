@@ -13,8 +13,8 @@
     "prebuild": "node ./scripts/native.js prebuild"
   },
   "dependencies": {
-    "babel-preset-expo": "~57.0.13",
-    "expo": "^57.0.26",
+    "babel-preset-expo": "~57.0.14",
+    "expo": "^57.0.27",
     "expo-build-properties": "~57.0.22",
     "expo-font": "~57.0.4",
     "expo-splash-screen": "~57.0.9",
