@@ -81,7 +81,7 @@ exitSubscription.remove();
 
 ## Contract
 
-The React Native API mirrors the Android SDK public enums:
+The React Native API mirrors the public enums of the native Vrtx SDKs (Android and iOS):
 
 | Parameter           | Enum               | Values                                                                 |
 | ------------------- | ------------------ | ---------------------------------------------------------------------- |
@@ -90,10 +90,8 @@ The React Native API mirrors the Android SDK public enums:
 | `mode`              | `Mode`             | `Mode.LIGHT`, `Mode.DARK`                                              |
 | `externalReference` | `string`           | Optional app-provided SDK session reference                            |
 | `designOption`      | `DesignOption`     | `DesignOption.OptionA`, `DesignOption.OptionB`, `DesignOption.OptionC` |
+| `fontFamily`        | `string`           | Optional name of a font already bundled in the host app                |
 | `theme`             | `VrtxThemeOptions` | Optional SDK theme and design-token overrides                          |
-
-`fontFamily` may be passed with the name of a font already bundled in the host app.
-`externalReference` may be passed as a string when your app needs to attach its own reference to the SDK session.
 
 > **Use the exported enums, not raw strings.** The values above are sent to the
 > native SDKs as plain strings. TypeScript callers are protected by the union
@@ -107,16 +105,10 @@ The React Native API mirrors the Android SDK public enums:
 | `onError`   | `(error: { code: string; message: string }) => void` |
 | `onExit`    | `() => void`                                         |
 
-Both helpers return a subscription with a `remove()` method.
-
-`onExit` fires when the user closes the native SDK flow. `theme` accepts optional
-brand images as URLs, color groups, spacing values, and corner-radius values;
-all omitted fields retain the native SDK defaults.
-
 ## Android app integrity (freeRASP)
 
-`vrtx-android` uses Talsec freeRASP to verify the host app's package name and
-signing certificate. Add the JitPack repository to your Android project, then
+The native Android SDK (`vrtx-android`, added automatically) uses Talsec
+freeRASP to verify the host app's package name and signing certificate. Add the JitPack repository to your Android project, then
 set the required manifest placeholders in the app module:
 
 ```groovy
@@ -150,8 +142,9 @@ echo -n "SHA256_HEX_WITHOUT_COLONS" | xxd -r -p | base64
 
 Run a native rebuild after changing the hash; a Metro reload is not enough.
 
-freeRASP disables Android backups. Configure the host app to use the same
-value to avoid a manifest-merger conflict. For Expo, add this to `app.json`:
+freeRASP disables Android backups, so the host app must also set
+`android:allowBackup="false"`; otherwise the manifest merger fails with a
+conflict. For Expo, add this to `app.json`:
 
 ```json
 {
