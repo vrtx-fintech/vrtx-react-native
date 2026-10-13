@@ -1,5 +1,20 @@
 # Development
 
+## Public repository boundary
+
+This repository, its Git history, PRs, comments and CI logs are public. Keep
+instructions scoped to the public SDK and its documented integration surface.
+Never copy private repository content or links, internal service architecture,
+infrastructure identifiers, private endpoints, customer data, operational
+runbooks, incident details or compliance evidence into any public surface.
+Access to internal material does not authorize its publication.
+
+Use synthetic examples and `example.invalid` for fictional endpoints; preserve
+documented public SDK endpoints and artifact coordinates. Review the entire diff
+and PR text for this boundary before pushing. Report sensitive vulnerabilities
+through the repository security policy or private vulnerability reporting when
+enabled; do not post exploit details or sensitive logs in public issues.
+
 `README.md` is for SDK consumers and ships to npm. Update it only for SDK
 changes (install, setup, API, events, platform integration), never for
 development, demo, CI, or release notes.
@@ -87,11 +102,11 @@ and [Expo local module development](https://docs.expo.dev/modules/get-started/).
   build/test tools. A scan failure or unavailable database is not a clean result.
   Report remaining findings and upstream blockers with evidence; never suppress
   findings, weaken gates or extend a security baseline to make a PR green.
-- Preserve PCI DSS 4.0.1 and applicable SAMA controls: least privilege, secure
-  transport, secret management, validated inputs, redacted audit logs and approved
-  data residency/retention. Never put real PAN, PIN, CVV, tokens or private keys in
-  code, fixtures, logs or prompts. Compliance claims require scoped, reviewed
-  evidence; documentation or passing scanners alone do not establish compliance.
+- Preserve SDK security: least privilege, secure transport, safe credential
+  handling, validated inputs and redacted logs. Never put real payment data,
+  credentials, tokens or private keys in code, fixtures, logs or prompts. Use
+  synthetic fixtures. Do not claim certifications or regulatory compliance
+  beyond reviewed public documentation; passing scanners alone is not evidence.
 - Use existing Makefile targets or documented commands and the committed package
   manager/lockfile. Install and run repository hooks; never bypass them. Verify
   changed behavior and relevant checks, report platform/credential limitations.
@@ -111,8 +126,7 @@ and [Expo local module development](https://docs.expo.dev/modules/get-started/).
 - [Node support](https://nodejs.org/en/about/previous-releases),
   [Java LTS](https://www.oracle.com/java/technologies/java-se-support-roadmap.html)
   and [Go support](https://go.dev/doc/devel/release).
-- [PCI standards library](https://www.pcisecuritystandards.org/document_library/)
-  and [SAMA Cyber Security Framework](https://www.rulebook.sama.gov.sa/en/cyber-security-framework-2).
+- [GitHub private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/report-privately).
 - [Codex repository instructions](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
   and [Claude memory](https://code.claude.com/docs/en/memory): keep automatic
   instructions concise and scoped; use one local source of truth.
