@@ -20,7 +20,7 @@
     "expo-splash-screen": "~58.0.9",
     "react": "19.3.0",
     "react-native": "0.88.0",
-    "vrtx-react-native": "^0.1.104"
+    "vrtx-react-native": "^0.1.105"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
