@@ -13,17 +13,17 @@
     "prebuild": "node ./scripts/native.js prebuild"
   },
   "dependencies": {
-    "babel-preset-expo": "~57.0.14",
-    "expo": "^57.0.27",
+    "babel-preset-expo": "~58.0.14",
+    "expo": "^58.0.12",
+    "expo-build-properties": "~58.0.11",
     "expo-font": "~58.0.8",
-    "expo-build-properties": "~58.0.10",
-    "expo-splash-screen": "~57.0.9",
-    "react": "19.2.9",
-    "react-native": "0.86.3",
+    "expo-splash-screen": "~58.0.9",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
     "vrtx-react-native": "^0.1.104"
   },
   "devDependencies": {
-    "@types/react": "~19.2.18",
-    "typescript": "~7.0.2"
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
   }
 }
