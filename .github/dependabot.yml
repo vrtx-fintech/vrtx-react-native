@@ -3,8 +3,7 @@ updates:
   - package-ecosystem: npm
     directory: /
     commit-message:
-      prefix: 'chore'
-      include: 'scope'
+      prefix: 'deps(sdk)'
     schedule:
       interval: weekly
     groups:
@@ -14,8 +13,7 @@ updates:
   - package-ecosystem: npm
     directory: /example
     commit-message:
-      prefix: 'demo'
-      include: 'scope'
+      prefix: 'deps(example)'
     schedule:
       interval: weekly
     groups:
