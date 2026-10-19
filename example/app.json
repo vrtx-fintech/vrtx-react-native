@@ -21,7 +21,6 @@
     },
     "plugins": [
       "./plugins/withAndroidDebugMetro",
-      "./plugins/withVrtxAndroid",
       [
         "./node_modules/expo-build-properties/app.plugin.js",
         {

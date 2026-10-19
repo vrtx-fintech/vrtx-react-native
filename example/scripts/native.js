@@ -36,4 +36,6 @@ if (!['ios', 'android', 'all'].includes(platform)) {
   throw new Error('--platform must be ios, android, or all');
 }
 run('npx', ['expo', 'prebuild', ...prebuildArgs]);
+if (platform !== 'ios')
+  run('bash', ['../scripts/android.sh', '--configure-only', 'android']);
 if (action !== 'prebuild') run('npx', ['expo', `run:${action}`, ...args]);
