@@ -15,8 +15,8 @@
   "dependencies": {
     "babel-preset-expo": "~57.0.14",
     "expo": "^57.0.27",
-    "expo-build-properties": "~57.0.22",
     "expo-font": "~58.0.8",
+    "expo-build-properties": "~58.0.10",
     "expo-splash-screen": "~57.0.9",
     "react": "19.2.9",
     "react-native": "0.86.3",
