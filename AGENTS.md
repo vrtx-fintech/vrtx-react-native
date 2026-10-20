@@ -57,7 +57,7 @@ npm run ios       # or: npm run android
 ## Constraints
 
 - Keep React Native, React, and their types aligned with the example's Expo SDK
-  (57: RN 0.86, React 19.2); upgrade them together with a stable Expo SDK.
+  (58: RN 0.88, React 19.3); upgrade them together with a stable Expo SDK.
 - The iOS bridge uses a podspec. When adopting a new iOS SDK release, update the
   `VRTX` pod pin and verify with the iOS example build.
 

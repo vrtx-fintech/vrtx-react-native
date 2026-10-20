@@ -5,12 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "sa.vrtx.reactnative.example"
@@ -23,9 +17,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "sa.vrtx.reactnative.example",
-      "minSdkVersion": 29,
-      "allowBackup": false,
-      "usesCleartextTraffic": false
+      "allowBackup": false
     },
     "plugins": [
       "./plugins/withAndroidDebugMetro",
@@ -33,9 +25,8 @@
         "./node_modules/expo-build-properties/app.plugin.js",
         {
           "android": {
-            "compileSdkVersion": 37,
             "minSdkVersion": 29,
-            "kotlinVersion": "2.1.20",
+            "usesCleartextTraffic": false,
             "buildArchs": ["arm64-v8a"],
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
@@ -278,6 +269,14 @@
               }
             ]
           }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
         }
       ]
     ]
