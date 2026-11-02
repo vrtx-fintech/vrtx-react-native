@@ -52,12 +52,10 @@ module.exports = function withAndroidDebugMetro(config) {
       }
 
       if (manifest.includes('tools:replace=')) {
-        manifest = manifest.replace(
-          /tools:replace="([^"]*)"/,
-          (match, value) =>
-            value.includes('android:networkSecurityConfig')
-              ? match
-              : 'tools:replace="' + value + ',android:networkSecurityConfig"',
+        manifest = manifest.replace(/tools:replace="([^"]*)"/, (match, value) =>
+          value.includes('android:networkSecurityConfig')
+            ? match
+            : 'tools:replace="' + value + ',android:networkSecurityConfig"',
         );
       } else if (manifest.includes('<application ')) {
         manifest = manifest.replace(
