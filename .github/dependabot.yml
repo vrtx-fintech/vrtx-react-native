@@ -1,6 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: npm
+    # Version updates off: upgrades are coordinated so related pins and config
+    # move together. Security alerts and security updates are unaffected.
+    open-pull-requests-limit: 0
     directory: /
     commit-message:
       prefix: 'deps(sdk)'
@@ -11,6 +14,9 @@ updates:
         dependency-type: development
 
   - package-ecosystem: npm
+    # Version updates off: upgrades are coordinated so related pins and config
+    # move together. Security alerts and security updates are unaffected.
+    open-pull-requests-limit: 0
     directory: /example
     commit-message:
       prefix: 'deps(example)'
@@ -23,6 +29,9 @@ updates:
         dependency-type: development
 
   - package-ecosystem: gradle
+    # Version updates off: upgrades are coordinated so related pins and config
+    # move together. Security alerts and security updates are unaffected.
+    open-pull-requests-limit: 0
     directory: /android
     commit-message:
       prefix: 'chore'
@@ -35,6 +44,9 @@ updates:
           - '*'
 
   - package-ecosystem: github-actions
+    # Version updates off: upgrades are coordinated so related pins and config
+    # move together. Security alerts and security updates are unaffected.
+    open-pull-requests-limit: 0
     directory: /
     commit-message:
       prefix: 'ci'
